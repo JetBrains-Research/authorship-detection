@@ -9,6 +9,9 @@ fun parseJoernAst(nodesFile: File, edgesFile: File): JoernNode? {
     }.toMap()
 
     val edgesRaw = edgesFile.readLines()
+    if (edgesRaw.size == 1) {
+        return null
+    }
     edgesRaw.subList(1, nodesRaw.size).forEach { line ->
         parseEdgeLine(line)?.let { edge ->
             val parentNode = nodesByIndex[edge.first]
