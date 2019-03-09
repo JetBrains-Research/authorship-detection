@@ -1,6 +1,6 @@
 package mining.joern
 
-import miningtool.common.Node
+import astminer.common.Node
 
 class JoernNode(private val typeLabel: String, private val token: String?) : Node {
     private val metadata: MutableMap<String, Any> = HashMap()

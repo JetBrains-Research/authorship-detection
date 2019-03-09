@@ -1,20 +1,21 @@
 package mining
 
 import mining.joern.parseJoernAst
-import miningtool.common.toPathContext
-import miningtool.parse.antlr.joern.CppParser
-import miningtool.paths.PathMiner
-import miningtool.paths.PathRetrievalSettings
-import miningtool.paths.storage.VocabularyPathStorage
+import astminer.common.toPathContext
+import astminer.parse.antlr.joern.CppParser
+import astminer.paths.PathMiner
+import astminer.paths.PathRetrievalSettings
+import astminer.paths.storage.VocabularyPathStorage
 import java.io.File
 
 fun main(args: Array<String>) {
-    val folder = "../parsed/datasets/cppSample/"
+    val folder = "../parsed/datasets/gcj/"
 
     val miner = PathMiner(PathRetrievalSettings(8, 3))
     val storage = VocabularyPathStorage()
 
     File(folder).walkTopDown().filter { it.path.endsWith(".cpp") && it.isDirectory }.forEach { directory ->
+        println(directory.path)
         val nodesFile = File(directory, "nodes.csv")
         val edgesFile = File(directory, "edges.csv")
 
@@ -24,5 +25,5 @@ fun main(args: Array<String>) {
         storage.store(paths.map { toPathContext(it) }, entityId = directory.path)
     }
 
-    storage.save("../processed/cppSample")
+    storage.save("../processed/gcj/")
 }
