@@ -12,7 +12,7 @@ fun parseJoernAst(nodesFile: File, edgesFile: File): JoernNode? {
     if (edgesRaw.size == 1) {
         return null
     }
-    edgesRaw.subList(1, nodesRaw.size).forEach { line ->
+    edgesRaw.subList(1, edgesRaw.size).forEach { line ->
         parseEdgeLine(line)?.let { edge ->
             val parentNode = nodesByIndex[edge.first]
             val childNode = nodesByIndex[edge.second]
