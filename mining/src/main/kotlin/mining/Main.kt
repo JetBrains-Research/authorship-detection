@@ -1,13 +1,36 @@
 package mining
 
-import mining.joern.parseJoernAst
-import astminer.paths.toPathContext
 import astminer.paths.PathMiner
 import astminer.paths.PathRetrievalSettings
 import astminer.paths.VocabularyPathStorage
+import astminer.paths.toPathContext
+import mining.joern.parseJoernAst
+import mining.python.parseFile
 import java.io.File
 
-fun main(args: Array<String>) {
+
+fun parsePy() {
+    val folder = "../datasets/gcjpy/"
+
+    val miner = PathMiner(PathRetrievalSettings(8, 3))
+    val storage = VocabularyPathStorage()
+
+    File(folder).walkTopDown().filter { it.path.endsWith(".py") }.forEach { file ->
+        try {
+            val node = parseFile(file.path) ?: return@forEach
+            val paths = miner.retrievePaths(node)
+
+            storage.store(paths.map { toPathContext(it) }, entityId = file.path)
+        } catch (e: IllegalStateException) {
+            println(e.message)
+            println("Oops, unable to parse ${file.name}")
+        }
+    }
+
+    storage.save("../processed/gcjpy/")
+}
+
+fun parseJoern() {
     val folder = "../parsed/datasets/cppSample/"
 
     val miner = PathMiner(PathRetrievalSettings(8, 3))
@@ -25,4 +48,9 @@ fun main(args: Array<String>) {
     }
 
     storage.save("../processed/cppSample/")
+}
+
+
+fun main(args: Array<String>) {
+    parsePy()
 }
