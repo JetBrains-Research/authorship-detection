@@ -6,6 +6,7 @@ label_position: 3
 seed: 239
 test_size: 2
 n_classes: 25
+n_runs: 5
 params:
   n_estimators: 500
   n_jobs: -1

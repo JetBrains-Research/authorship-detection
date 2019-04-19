@@ -14,6 +14,7 @@ class BaseClassifier:
         self.__fix_random()
         self._loader = self.__get_loader(config.source_folder())
         self.__indices_per_class, self._n_classes = self.__split_into_classes(self._loader)
+        self.update_chosen_classes()
 
     def __fix_random(self):
         np.random.seed(self.config.seed())
@@ -42,12 +43,15 @@ class BaseClassifier:
             np.random.shuffle(indices_per_class[k])
         return indices_per_class, n_classes
 
-    # Create training and validation dataset.
-    def _split_train_test(self, loader: PathMinerLoader, fold_ind: int) -> Tuple[PathMinerDataset, PathMinerDataset]:
+    def update_chosen_classes(self):
         chosen_classes = np.random.choice(self._n_classes, self.config.n_classes(), replace=False) \
             if self.config.n_classes() is not None \
             else np.arange(self._n_classes)
+        self.__chosen_classes = chosen_classes
 
+    # Create training and validation dataset.
+    def _split_train_test(self, loader: PathMinerLoader, fold_ind: int) -> Tuple[PathMinerDataset, PathMinerDataset]:
+        chosen_classes = self.__chosen_classes
         test_size = self.config.test_size()
 
         start_ind = fold_ind * test_size

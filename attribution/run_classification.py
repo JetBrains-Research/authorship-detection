@@ -1,5 +1,6 @@
 import argparse
 
+import numpy as np
 import yaml
 
 from classifier.RFClassifier import RFClassifier
@@ -13,7 +14,16 @@ def output_file(input_file):
 def main(args):
     config = Config.fromyaml(args.config_file)
     classifier = RFClassifier(config)
-    mean, std, scores = classifier.cross_validate()
+    if config.n_runs() is not None:
+        scores = []
+        for _ in range(config.n_runs()):
+            _, _, new_scores = classifier.cross_validate()
+            scores.extend(new_scores)
+            classifier.update_chosen_classes()
+        mean = float(np.mean(scores))
+        std = float(np.std(scores))
+    else:
+        mean, std, scores = classifier.cross_validate()
     print(f'{mean:.3f}+-{std:.3f}')
     yaml.dump({
         'mean': mean,

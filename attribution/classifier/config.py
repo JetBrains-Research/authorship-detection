@@ -35,6 +35,9 @@ class Config:
     def params(self):
         return self.__get('params')
 
+    def n_runs(self):
+        return self.__get('n_runs')
+
     def __get(self, param):
         try:
             return self.config[param]
