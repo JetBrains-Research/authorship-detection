@@ -1,5 +1,5 @@
 import argparse
-
+import os
 import numpy as np
 import yaml
 
@@ -7,11 +7,19 @@ from classifier.RFClassifier import RFClassifier
 from classifier.config import Config
 
 
+def output_filename(input_file):
+    return 'output/' + input_file
+
+
 def output_file(input_file):
-    return open('output/' + input_file, 'w')
+    return open(output_filename(input_file), 'w')
 
 
 def main(args):
+    if os.path.isfile(output_filename(args.config_file)):
+        print("Already processed")
+        exit(0)
+
     config = Config.fromyaml(args.config_file)
     classifier = RFClassifier(config)
     if config.n_runs() is not None:
