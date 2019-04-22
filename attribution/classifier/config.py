@@ -16,8 +16,8 @@ class Config:
     def features(self):
         return self.__get('features')
 
-    def feature_counts(self):
-        return self.__get('feature_counts')
+    def feature_count(self):
+        return self.__get('feature_count')
 
     # Index of author's folder in path
     def label_position(self):
@@ -37,6 +37,9 @@ class Config:
 
     def n_runs(self):
         return self.__get('n_runs')
+
+    def mutual_info_file(self):
+        return self.__get('mutual_info_file')
 
     def __get(self, param):
         try:

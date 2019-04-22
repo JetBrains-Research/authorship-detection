@@ -1,8 +1,10 @@
-from typing import List, Tuple
+import os
+from typing import List, Tuple, Union
 
 import numpy as np
-from scipy.sparse import csr_matrix
+from scipy.sparse import csc_matrix
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.feature_selection import mutual_info_classif
 from sklearn.metrics import accuracy_score
 
 from classifier.BaseClassifier import BaseClassifier
@@ -13,8 +15,9 @@ from data_processing.PathMinerDataset import PathMinerDataset
 class RFClassifier(BaseClassifier):
     def __init__(self, config: Config):
         super(RFClassifier, self).__init__(config)
+        self.__feature_scores = None
 
-    def __build_sparse_matrix(self, dataset: PathMinerDataset, features: List[str]) -> csr_matrix:
+    def __build_sparse_matrix(self, dataset: PathMinerDataset, features: List[str]) -> csc_matrix:
         feature_counts = [self.__feature_count(f) for f in features]
         data = []
         row_ind, col_ind = [], []
@@ -35,7 +38,7 @@ class RFClassifier(BaseClassifier):
                     col_ind.append(pref + ind)
             pref += feature_count
 
-        return csr_matrix((data, (row_ind, col_ind)), shape=(len(dataset), sum(feature_counts)))
+        return csc_matrix((data, (row_ind, col_ind)), shape=(len(dataset), sum(feature_counts)))
 
     def __feature_count(self, feature: str):
         if feature == 'paths':
@@ -57,7 +60,11 @@ class RFClassifier(BaseClassifier):
         y_train = train_dataset.labels()
         X_test = self.__build_sparse_matrix(test_dataset, self.config.features())
         y_test = test_dataset.labels()
+        if self.config.feature_count() is not None:
+            X_train = self.__top_features(X_train, train_dataset.labels(), self.config.feature_count())
+            X_test = self.__top_features(X_test, test_dataset.labels(), self.config.feature_count())
 
+        print(X_train.shape, y_train.shape, X_test.shape, y_test.shape)
         return X_train, X_test, y_train, y_test
 
     def cross_validate(self) -> Tuple[float, float, List[float]]:
@@ -75,3 +82,24 @@ class RFClassifier(BaseClassifier):
         model.fit(X_train, y_train)
         predictions = model.predict(X_test)
         return accuracy_score(y_test, predictions)
+
+    def __top_features(self, feature_matrix: Union[np.ndarray, csc_matrix], labels: np.ndarray,
+                       n_count: int) -> Union[np.ndarray, csc_matrix]:
+
+        if feature_matrix.shape[1] <= n_count:
+            return feature_matrix
+        mutual_information = self.__mutual_information(feature_matrix, labels)
+        indices = np.argsort(mutual_information)[-n_count:]
+        return feature_matrix[:, indices]
+
+    def __mutual_information(self, feature_matrix: Union[np.ndarray, csc_matrix], labels: np.ndarray) -> np.ndarray:
+        if self.__feature_scores is None:
+            save_filename = self.config.mutual_info_file()
+            if save_filename is not None and os.path.isfile(save_filename):
+                self.__feature_scores = np.fromfile(save_filename)
+            else:
+                print("Computing mutual information")
+                mutual_information = mutual_info_classif(feature_matrix, labels)
+                mutual_information.tofile(save_filename)
+                self.__feature_scores = mutual_information
+        return self.__feature_scores
