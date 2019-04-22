@@ -27,3 +27,8 @@
 
 # IntelliJ
 out/
+
+# Data files
+datasets/*
+processed/*
+parsed/*
