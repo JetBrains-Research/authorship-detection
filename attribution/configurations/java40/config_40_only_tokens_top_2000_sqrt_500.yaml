@@ -1,0 +1,15 @@
+source_folder: "../processed/java40"
+mutual_info_file: "mutual_info/tokens_java_scores.numpy"
+features:
+  - "starts"
+label_position: 3
+seed: 239
+test_size: 0.1
+feature_count: 2000
+params:
+  n_estimators: 500
+  n_jobs: -1
+  min_samples_leaf: 1
+  min_samples_split: 2
+  max_features: 'sqrt'
+  random_state: 239
