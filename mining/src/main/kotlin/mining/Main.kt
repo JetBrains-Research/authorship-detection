@@ -1,5 +1,6 @@
 package mining
 
+import astminer.parse.antlr.java.JavaParser
 import astminer.paths.PathMiner
 import astminer.paths.PathRetrievalSettings
 import astminer.paths.VocabularyPathStorage
@@ -51,6 +52,28 @@ fun parseJoern() {
 }
 
 
+fun parseJava() {
+    val folder = "../datasets/java40/"
+
+    val miner = PathMiner(PathRetrievalSettings(14, 5))
+    val storage = VocabularyPathStorage()
+
+    File(folder).walkTopDown().filter { it.path.endsWith(".java") }.forEach { file ->
+        try {
+            val node = JavaParser().parse(file.inputStream()) ?: return@forEach
+            val paths = miner.retrievePaths(node)
+
+            storage.store(paths.map { toPathContext(it) }, entityId = file.path)
+        } catch (e: IllegalStateException) {
+            println(e.message)
+            println("Oops, unable to parse ${file.name}")
+        }
+    }
+
+    storage.save("../processed/java40Large/")
+}
+
+
 fun main(args: Array<String>) {
-    parsePy()
+    parseJava()
 }
