@@ -29,6 +29,6 @@
 out/
 
 # Data files
-datasets/*
-processed/*
+datasets/**
+processed/**/*.csv
 parsed/*
