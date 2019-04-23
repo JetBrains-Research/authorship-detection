@@ -13,7 +13,7 @@ class PathMinerLoader:
 
     def __init__(self,
                  tokens_file: str, paths_file: str, node_types_file: str, path_contexts_file: str,
-                 transform: Callable = None):
+                 transform: Callable = None, explicit_features_files: str = None):
         self._tokens = self._load_tokens(tokens_file)
         self._node_types = self._load_node_types(node_types_file)
         self._paths = self._load_paths(paths_file)
@@ -21,14 +21,23 @@ class PathMinerLoader:
         self._labels = transform(self._indices) if transform is not None \
             else self._indices
         self._n_classes = np.unique(self._labels).size
+        self._use_explicit_features = explicit_features_files is not None
+        if self._use_explicit_features:
+            features_file, paths_file = explicit_features_files
+            self._explicit_features = self._load_explicit_features(features_file, paths_file)
+        else:
+            self._explicit_features = None
 
     @classmethod
-    def from_folder(cls, dataset_folder: str, transform: Callable = None):
+    def from_folder(cls, dataset_folder: str, transform: Callable = None, use_explicit_features: bool = False):
+        explicit_features_files = (path.join(dataset_folder, 'extracted_features.npy'),
+                                   path.join(dataset_folder, 'paths_updated.npy')) if use_explicit_features else None
         return cls(path.join(dataset_folder, 'tokens.csv'),
                    path.join(dataset_folder, 'paths.csv'),
                    path.join(dataset_folder, 'node_types.csv'),
                    path.join(dataset_folder, 'path_contexts.csv'),
-                   transform)
+                   transform,
+                   explicit_features_files=explicit_features_files)
 
     # Token loading is slightly complex because tokens can contain any symbols
     def _load_tokens(self, tokens_file: str) -> np.ndarray:
@@ -93,6 +102,12 @@ class PathMinerLoader:
             converted_values[ind] = val
         return converted_values
 
+    def _load_explicit_features(self, features_file: str, paths_file: str) -> np.ndarray:
+        features = np.load(features_file)
+        paths = np.load(paths_file)
+        inds = {path: k for k, path in enumerate(paths)}
+        return np.array([features[inds[ind.replace(' ', '_')]] for ind in self._indices])
+
     def tokens(self) -> np.ndarray:
         return self._tokens
 
@@ -110,3 +125,6 @@ class PathMinerLoader:
 
     def n_classes(self) -> np.int32:
         return self._n_classes
+
+    def explicit_features(self) -> np.ndarray:
+        return self._explicit_features

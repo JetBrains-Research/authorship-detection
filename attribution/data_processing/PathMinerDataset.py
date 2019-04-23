@@ -1,7 +1,7 @@
 import numpy as np
 import torch
-from torch.utils.data import Dataset
 import torch.nn.functional as F
+from torch.utils.data import Dataset
 
 from data_processing import PathMinerLoader
 from data_processing.UtilityEntities import PathContexts, path_contexts_from_index
@@ -11,10 +11,12 @@ from data_processing.UtilityEntities import PathContexts, path_contexts_from_ind
 class PathMinerDataset(Dataset):
 
     # Converts data to PyTorch Tensors for further usage in the model
-    def __init__(self, path_contexts: PathContexts, labels: np.ndarray, should_pad: bool = True):
+    def __init__(self, path_contexts: PathContexts, labels: np.ndarray, should_pad: bool = True,
+                 explicit_features: np.ndarray = None):
         self._size = labels.size
         self._labels = torch.LongTensor(labels)
         self._contexts = path_contexts
+        self._explicit_features = explicit_features
         self._should_pad = should_pad
         if should_pad:
             # self._pad_length = max([len(arr) for arr in self.contexts.starts])
@@ -22,11 +24,19 @@ class PathMinerDataset(Dataset):
             print(self._pad_length)
 
     @classmethod
-    def from_loader(cls, loader: PathMinerLoader, indices: np.ndarray = None, should_pad: bool = True):
+    def from_loader(cls, loader: PathMinerLoader, indices: np.ndarray = None, should_pad: bool = True,
+                    use_explicit_features: bool = False):
         contexts, labels = (path_contexts_from_index(loader.path_contexts(), indices), loader.labels()[indices]) \
             if indices is not None \
             else (loader.path_contexts(), loader.labels())
-        return cls(contexts, labels, should_pad)
+        if use_explicit_features:
+            explicit_features = loader.explicit_features()[indices] \
+                if indices is not None \
+                else loader.explicit_features()
+        else:
+            explicit_features = None
+
+        return cls(contexts, labels, should_pad, explicit_features=explicit_features)
 
     def __len__(self):
         return self._size
@@ -36,19 +46,22 @@ class PathMinerDataset(Dataset):
         starts = torch.LongTensor(self._contexts.starts[index])
         paths = torch.LongTensor(self._contexts.paths[index])
         ends = torch.LongTensor(self._contexts.ends[index])
+        explicit = self._explicit_features[index] if self._explicit_features is not None else None
         if self._should_pad and cur_len < self._pad_length:
             return {
                 'starts': F.pad(starts, [0, self._pad_length - cur_len], mode='constant', value=0),
                 'paths': F.pad(paths, [0, self._pad_length - cur_len], mode='constant', value=0),
                 'ends': F.pad(ends, [0, self._pad_length - cur_len], mode='constant', value=0),
-                'labels': self._labels[index]
+                'labels': self._labels[index],
+                'explicit': explicit
             }
         else:
             return {
                 'starts': starts,
                 'paths': paths,
                 'ends': ends,
-                'labels': self._labels[index]
+                'labels': self._labels[index],
+                'explicit': explicit
             }
 
     def labels(self) -> np.ndarray:

@@ -43,6 +43,9 @@ class Config:
     def mutual_info_file(self):
         return self.__get('mutual_info_file')
 
+    def use_explicit_features(self):
+        return 'explicit' in self.features()
+
     def __get(self, param):
         try:
             return self.config[param]

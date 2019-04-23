@@ -24,18 +24,25 @@ class RFClassifier(BaseClassifier):
         pref = 0
         for feature, feature_count in zip(features, feature_counts):
             for i, item in enumerate(dataset):
-                inds, counts = np.unique(item[feature], return_counts=True)
-                # if valid_paths is not None:
-                #     _, intersection_inds = snp.intersect(path_inds, valid_paths, indices=True)
-                #     path_inds = intersection_inds[1]
-                #     path_counts = path_counts[intersection_inds[0]]
+                if feature != 'explicit':
+                    inds, counts = np.unique(item[feature], return_counts=True)
+                    # if valid_paths is not None:
+                    #     _, intersection_inds = snp.intersect(path_inds, valid_paths, indices=True)
+                    #     path_inds = intersection_inds[1]
+                    #     path_counts = path_counts[intersection_inds[0]]
 
-                for ind, count in zip(inds, counts):
-                    # if valid_paths is not None and path_ind not in valid_paths:
-                    #     continue
-                    data.append(count)
-                    row_ind.append(i)
-                    col_ind.append(pref + ind)
+                    for ind, count in zip(inds, counts):
+                        # if valid_paths is not None and path_ind not in valid_paths:
+                        #     continue
+                        data.append(count)
+                        row_ind.append(i)
+                        col_ind.append(pref + ind)
+                else:
+                    for k, val in enumerate(item[feature]):
+                        data.append(val)
+                        row_ind.append(i)
+                        col_ind.append(pref + k)
+
             pref += feature_count
 
         return csc_matrix((data, (row_ind, col_ind)), shape=(len(dataset), sum(feature_counts)))
@@ -45,6 +52,8 @@ class RFClassifier(BaseClassifier):
             return self._loader.paths().size
         if feature == 'starts' or feature == 'ends':
             return self._loader.tokens().size
+        if feature == 'explicit':
+            return self._loader.explicit_features().shape[1]
         return 0
 
     def __create_samples(self, fold_ind: int = 0):

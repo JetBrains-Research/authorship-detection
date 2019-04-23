@@ -22,7 +22,8 @@ class BaseClassifier:
 
     def __get_loader(self, folder: str) -> PathMinerLoader:
         print("Waiting for loader")
-        return PathMinerLoader.from_folder(folder, transform=self.__label_contexts)
+        return PathMinerLoader.from_folder(folder, transform=self.__label_contexts,
+                                           use_explicit_features=self.config.use_explicit_features())
 
     # Add labels with project info to path contexts.
     def __label_contexts(self, project_paths: np.ndarray) -> np.ndarray:
@@ -74,8 +75,10 @@ class BaseClassifier:
                 for inds in self.__indices_per_class[chosen_classes]
             ])
 
-        return PathMinerDataset.from_loader(loader, np.array(train_indices, dtype=np.int32), False), \
-               PathMinerDataset.from_loader(loader, np.array(test_indices, dtype=np.int32), False)
+        return PathMinerDataset.from_loader(loader, np.array(train_indices, dtype=np.int32), False,
+                                            use_explicit_features=self.config.use_explicit_features()), \
+               PathMinerDataset.from_loader(loader, np.array(test_indices, dtype=np.int32), False,
+                                            use_explicit_features=self.config.use_explicit_features())
 
     def _n_folds(self) -> int:
         test_size = self.config.test_size()
