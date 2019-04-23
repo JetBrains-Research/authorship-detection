@@ -1,7 +1,8 @@
-from typing import Tuple, Callable
-import pandas as pd
-import numpy as np
 from os import path
+from typing import Tuple, Callable
+
+import numpy as np
+import pandas as pd
 import parse
 
 from data_processing.UtilityEntities import PathContext, Path, NodeType, PathContexts
@@ -64,7 +65,9 @@ class PathMinerLoader:
     def _load_path_contexts(path_contexts_file) -> Tuple[np.ndarray, PathContexts]:
         contexts = pd.read_csv(path_contexts_file, sep=',')
         path_contexts = contexts.path_contexts.fillna('').map(
-            lambda ctx: np.array(list(map(PathContext.fromstring, ctx.split(';'))), dtype=np.object) if ctx else list()
+            lambda ctx: np.array(list(map(PathContext.fromstring, ctx.split(';'))), dtype=np.object)
+            if ctx
+            else np.array([])
         )
         starts = path_contexts.map(
             lambda ctx_array: np.fromiter(map(lambda ctx: ctx.start_token, ctx_array), np.int32, count=ctx_array.size)

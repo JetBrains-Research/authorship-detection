@@ -100,6 +100,7 @@ class RFClassifier(BaseClassifier):
             else:
                 print("Computing mutual information")
                 mutual_information = mutual_info_classif(feature_matrix, labels)
+                print(mutual_information)
                 mutual_information.tofile(save_filename)
                 self.__feature_scores = mutual_information
         return self.__feature_scores

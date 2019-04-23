@@ -53,19 +53,33 @@ class BaseClassifier:
     def _split_train_test(self, loader: PathMinerLoader, fold_ind: int) -> Tuple[PathMinerDataset, PathMinerDataset]:
         chosen_classes = self.__chosen_classes
         test_size = self.config.test_size()
-
-        start_ind = fold_ind * test_size
-        train_indices = np.concatenate([
-            np.concatenate((inds[:min(inds.size, start_ind)], inds[min(inds.size, start_ind + test_size):]))
-            for inds in self.__indices_per_class[chosen_classes]
-        ])
-        test_indices = np.concatenate([
-            inds[min(inds.size, start_ind):min(inds.size, start_ind + test_size)]
-            for inds in self.__indices_per_class[chosen_classes]
-        ])
+        if isinstance(test_size, int):
+            start_ind = fold_ind * test_size
+            train_indices = np.concatenate([
+                np.concatenate((inds[:min(inds.size, start_ind)], inds[min(inds.size, start_ind + test_size):]))
+                for inds in self.__indices_per_class[chosen_classes]
+            ])
+            test_indices = np.concatenate([
+                inds[min(inds.size, start_ind):min(inds.size, start_ind + test_size)]
+                for inds in self.__indices_per_class[chosen_classes]
+            ])
+        else:
+            train_indices = np.concatenate([
+                np.concatenate((inds[:int(test_size * inds.size) * fold_ind],
+                                inds[min(inds.size, int(test_size * inds.size) * (fold_ind + 1)):]))
+                for inds in self.__indices_per_class[chosen_classes]
+            ])
+            test_indices = np.concatenate([
+                inds[int(test_size * inds.size) * fold_ind:min(inds.size, int(test_size * inds.size) * (fold_ind + 1))]
+                for inds in self.__indices_per_class[chosen_classes]
+            ])
 
         return PathMinerDataset.from_loader(loader, np.array(train_indices, dtype=np.int32), False), \
                PathMinerDataset.from_loader(loader, np.array(test_indices, dtype=np.int32), False)
 
     def _n_folds(self) -> int:
-        return int(np.ceil(max([inds.size for inds in self.__indices_per_class]) / self.config.test_size()))
+        test_size = self.config.test_size()
+        if isinstance(test_size, float):
+            return int(np.ceil(1. / test_size))
+        else:
+            return int(np.ceil(max([inds.size for inds in self.__indices_per_class]) / test_size))

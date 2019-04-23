@@ -1,3 +1,5 @@
+from typing import Union
+
 import yaml
 
 
@@ -29,7 +31,7 @@ class Config:
     def n_classes(self):
         return self.__get('n_classes')
 
-    def test_size(self):
+    def test_size(self) -> Union[int, float]:
         return self.__get('test_size')
 
     def params(self):
