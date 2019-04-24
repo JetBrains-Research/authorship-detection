@@ -8,8 +8,6 @@ import astminer.paths.toPathContext
 import mining.joern.computeFeatures
 import mining.joern.parseJoernAst
 import mining.python.parseFile
-import org.yaml.snakeyaml.DumperOptions
-import org.yaml.snakeyaml.Yaml
 import java.io.File
 
 
@@ -55,8 +53,9 @@ fun parseJoern() {
 }
 
 fun computeJoernFeatures() {
-    val folder = "../parsed/datasets/cppSample/"
+    val folder = "../parsed/datasets/gcj/"
     val fileFeatures = mutableMapOf<String, MutableMap<String, Float>>()
+    val featureNames = mutableListOf<String>()
     File(folder).walkTopDown().filter { it.path.endsWith(".cpp") && it.isDirectory }.forEach { directory ->
         val cppFile = File(directory.path.removeRange(2, 9))
         println(cppFile.path)
@@ -66,12 +65,20 @@ fun computeJoernFeatures() {
         val node = parseJoernAst(nodesFile, edgesFile) ?: return@forEach
         val features = computeFeatures(node, cppFile)
         fileFeatures[directory.path] = features
-        return
+        if (featureNames.size == 0) {
+            featureNames.addAll(features.keys)
+        }
     }
-    val options = DumperOptions()
-    options.isPrettyFlow = true
-    val yaml = Yaml(options)
-    File("data.yaml").writeText(yaml.dump(fileFeatures))
+
+    val dataFileWriter = File("data.csv").writer()
+    dataFileWriter.write("project," + featureNames.joinToString(separator = ","))
+    fileFeatures.forEach { it ->
+        val filePath = it.key
+        val features = it.value
+        dataFileWriter.write("\n$filePath," +
+                featureNames.joinToString(",", transform = { features[it].toString() }))
+    }
+    dataFileWriter.close()
 }
 
 fun parseJava() {
