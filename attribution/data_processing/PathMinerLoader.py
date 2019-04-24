@@ -23,15 +23,17 @@ class PathMinerLoader:
         self._n_classes = np.unique(self._labels).size
         self._use_explicit_features = explicit_features_files is not None
         if self._use_explicit_features:
-            features_file, paths_file = explicit_features_files
-            self._explicit_features = self._load_explicit_features(features_file, paths_file)
+            # features_file, paths_file = explicit_features_files
+            # self._explicit_features = self._load_explicit_features(features_file, paths_file)
+            self._explicit_features = self._load_explicit_features(explicit_features_files)
         else:
             self._explicit_features = None
 
     @classmethod
     def from_folder(cls, dataset_folder: str, transform: Callable = None, use_explicit_features: bool = False):
-        explicit_features_files = (path.join(dataset_folder, 'extracted_features.npy'),
-                                   path.join(dataset_folder, 'paths_updated.npy')) if use_explicit_features else None
+        # explicit_features_files = (path.join(dataset_folder, 'extracted_features.npy'),
+        #                            path.join(dataset_folder, 'paths_updated.npy')) if use_explicit_features else None
+        explicit_features_files = path.join(dataset_folder, 'explicit.csv') if use_explicit_features else None
         return cls(path.join(dataset_folder, 'tokens.csv'),
                    path.join(dataset_folder, 'paths.csv'),
                    path.join(dataset_folder, 'node_types.csv'),
@@ -102,11 +104,17 @@ class PathMinerLoader:
             converted_values[ind] = val
         return converted_values
 
-    def _load_explicit_features(self, features_file: str, paths_file: str) -> np.ndarray:
-        features = np.load(features_file)
-        paths = np.load(paths_file)
-        inds = {path: k for k, path in enumerate(paths)}
-        return np.array([features[inds[ind.replace(' ', '_')]] for ind in self._indices])
+    # def _load_explicit_features(self, features_file: str, paths_file: str) -> np.ndarray:
+    #     features = np.load(features_file)
+    #     paths = np.load(paths_file)
+    #     inds = {path: k for k, path in enumerate(paths)}
+    #     return np.array([features[inds[ind.replace(' ', '_')]] for ind in self._indices])
+
+    def _load_explicit_features(self, features_file: str) -> np.ndarray:
+        features = pd.read_csv(features_file)
+        inds = {path: k for k, path in zip(features.index, features['project'])}
+        features = features.drop('project', axis=1)
+        return np.array([features.iloc[inds[ind]].values for ind in self._indices])
 
     def tokens(self) -> np.ndarray:
         return self._tokens
