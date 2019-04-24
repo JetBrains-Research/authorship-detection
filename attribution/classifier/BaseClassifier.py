@@ -40,8 +40,8 @@ class BaseClassifier:
         for i, ind in enumerate(index):
             indices_per_class[ind].append(i)
         indices_per_class = np.array([np.array(inds, dtype=np.int32) for inds in indices_per_class])
-        for k in range(n_classes):
-            np.random.shuffle(indices_per_class[k])
+        # for k in range(n_classes):
+        #     np.random.shuffle(indices_per_class[k])
         return indices_per_class, n_classes
 
     def update_chosen_classes(self):
