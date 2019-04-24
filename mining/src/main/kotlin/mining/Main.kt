@@ -5,8 +5,11 @@ import astminer.paths.PathMiner
 import astminer.paths.PathRetrievalSettings
 import astminer.paths.VocabularyPathStorage
 import astminer.paths.toPathContext
+import mining.joern.computeFeatures
 import mining.joern.parseJoernAst
 import mining.python.parseFile
+import org.yaml.snakeyaml.DumperOptions
+import org.yaml.snakeyaml.Yaml
 import java.io.File
 
 
@@ -51,6 +54,25 @@ fun parseJoern() {
     storage.save("../processed/cppSample/")
 }
 
+fun computeJoernFeatures() {
+    val folder = "../parsed/datasets/cppSample/"
+    val fileFeatures = mutableMapOf<String, MutableMap<String, Float>>()
+    File(folder).walkTopDown().filter { it.path.endsWith(".cpp") && it.isDirectory }.forEach { directory ->
+        val cppFile = File(directory.path.removeRange(2, 9))
+        println(cppFile.path)
+        val nodesFile = File(directory, "nodes.csv")
+        val edgesFile = File(directory, "edges.csv")
+
+        val node = parseJoernAst(nodesFile, edgesFile) ?: return@forEach
+        val features = computeFeatures(node, cppFile)
+        fileFeatures[directory.path] = features
+        return
+    }
+    val options = DumperOptions()
+    options.isPrettyFlow = true
+    val yaml = Yaml(options)
+    File("data.yaml").writeText(yaml.dump(fileFeatures))
+}
 
 fun parseJava() {
     val folder = "../datasets/java40/"
@@ -75,5 +97,5 @@ fun parseJava() {
 
 
 fun main(args: Array<String>) {
-    parseJava()
+    computeJoernFeatures()
 }
