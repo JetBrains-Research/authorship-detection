@@ -8,7 +8,7 @@ label_position: 4
 seed: 239
 test_size: 1
 n_classes: 1600
-feature_count: 20000
+feature_count: 10000
 params:
   n_estimators: 300
   n_jobs: -1
