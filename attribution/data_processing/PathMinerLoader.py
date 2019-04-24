@@ -55,8 +55,8 @@ class PathMinerLoader:
                     tokens[-1] += line
 
         # Remove line breaks at the end of tokens
-        for i in range(len(tokens)):
-            tokens[i] = tokens[i][:-1]
+        # for i in range(len(tokens)):
+        #     tokens[i] = tokens[i][:-1]
 
         return self._series_to_ndarray(indices, tokens)
 
