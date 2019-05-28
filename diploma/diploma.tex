@@ -1,0 +1,46 @@
+% В этом шаблоне используется класс spbau-diploma. Его можно найти и, если требуется, 
+% поправить в файле spbau-diploma.cls
+\documentclass{spbau-diploma}
+\usepackage{wasysym}
+\usepackage{subfiles}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{svg}
+\usepackage{tabularx}
+\usepackage{caption}
+\usepackage{subcaption}
+% \usepackage{incgraph,tikz}
+% \usepackage{chngcntr}
+% \counterwithin{figure}{section}
+% \counterwithin{table}{section}
+% \counterwithin{equation}{section}
+% \captionsetup[table]{justification=raggedleft,singlelinecheck=off}
+
+\def\bbljan{January}  \def\bblfeb{February}  \def\bblmar{March}
+\def\bblapr{April}    \def\bblmay{May}       \def\bbljun{June}
+\def\bbljul{July}     \def\bblaug{August}    \def\bblsep{September}
+\def\bbloct{October}  \def\bblnov{November}  \def\bbldec{December}
+
+\begin{document}
+% \begin{titlepage}
+% \incgraph[documentpaper][width=\paperwidth,height=\paperheight]{images/TitlePage.pdf}
+% \end{titlepage}
+
+\includepdf[pages=-]{images/TitlePage.pdf}
+\maketitle
+\setcounter{page}{2}
+% \pagebreak
+% \my@body14pt
+\newgeometry{a4paper,top=20mm,bottom=20mm,left=30mm,right=15mm,nohead,includeheadfoot}
+\tableofcontents
+
+\input{sections/introduction}
+\input{sections/literaturereview}
+\input{sections/data}
+\input{sections/model}
+\input{sections/evaluation}
+\input{sections/conclusion}
+
+\bibliographystyle{ugost2008my}
+\bibliography{diploma.bib}
+\end{document}
