@@ -6,7 +6,7 @@ features:
 label_position: 3
 seed: 239
 test_size: 2
-feature_count: 3500
+feature_count: 6000
 params:
   n_estimators: 500
   n_jobs: -1
