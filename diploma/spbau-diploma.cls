@@ -74,7 +74,9 @@
 \usepackage{indentfirst}
 \setlength{\parindent}{1cm}
 %% Гиперссылки
-% \usepackage[colorlinks=true,urlcolor=black,linkcolor=black,filecolor=black,citecolor=black]{hyperref}
+% \hypersetup{
+%   colorlinks=false
+% }
 
 %% Включение графических файлов
 %% we don't need to load graphicx since it will be loaded by xunicode (which is loaded by fontspec) 
