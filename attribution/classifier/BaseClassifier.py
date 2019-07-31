@@ -1,3 +1,4 @@
+from math import ceil
 from typing import Tuple
 
 import numpy as np
@@ -66,12 +67,13 @@ class BaseClassifier:
             ])
         else:
             train_indices = np.concatenate([
-                np.concatenate((inds[:int(test_size * inds.size) * fold_ind],
-                                inds[min(inds.size, int(test_size * inds.size) * (fold_ind + 1)):]))
+                np.concatenate((inds[:ceil(test_size * inds.size) * fold_ind],
+                                inds[min(inds.size, ceil(test_size * inds.size) * (fold_ind + 1)):]))
                 for inds in self.__indices_per_class[chosen_classes]
             ])
             test_indices = np.concatenate([
-                inds[int(test_size * inds.size) * fold_ind:min(inds.size, int(test_size * inds.size) * (fold_ind + 1))]
+                inds[
+                ceil(test_size * inds.size) * fold_ind:min(inds.size, ceil(test_size * inds.size) * (fold_ind + 1))]
                 for inds in self.__indices_per_class[chosen_classes]
             ])
 
