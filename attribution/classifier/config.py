@@ -12,6 +12,9 @@ class Config:
     def fromyaml(cls, filename: str):
         return cls(yaml.load(open(filename, 'r'), Loader=yaml.Loader))
 
+    def classifier_type(self):
+        return self.__get('classifier_type')
+
     def source_folder(self):
         return self.__get('source_folder')
 
@@ -44,7 +47,22 @@ class Config:
         return self.__get('mutual_info_file')
 
     def use_explicit_features(self):
-        return 'explicit' in self.features()
+        return self.features() is not None and 'explicit' in self.features()
+
+    def epochs(self):
+        return self.__get('epochs')
+
+    def batch_size(self):
+        return self.__get('batch_size')
+
+    def hidden_dim(self):
+        return self.__get('hidden_dim')
+
+    def learning_rate(self):
+        return self.__get('learning_rate')
+
+    def log_batches(self):
+        return self.__get('log_batches')
 
     def __get(self, param):
         try:

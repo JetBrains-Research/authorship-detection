@@ -1,9 +1,8 @@
-import torch
 from torch import nn
+
 from model.CodeVectorizer import CodeVectorizer
 
 
-# Classifier distinguishing files between two projects based on code2vec vectorization for files.
 class ProjectClassifier(nn.Module):
 
     def __init__(self, n_tokens, n_paths, dim, n_classes):

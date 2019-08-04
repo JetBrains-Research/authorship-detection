@@ -1,8 +1,10 @@
 import argparse
 import os
+
 import numpy as np
 import yaml
 
+from classifier.NNClassifier import NNClassifier
 from classifier.RFClassifier import RFClassifier
 from classifier.config import Config
 
@@ -21,7 +23,7 @@ def main(args):
         exit(0)
 
     config = Config.fromyaml(args.config_file)
-    classifier = RFClassifier(config)
+    classifier = NNClassifier(config) if config.classifier_type() == 'nn' else RFClassifier(config)
     if config.n_runs() is not None:
         scores = []
         for _ in range(config.n_runs()):

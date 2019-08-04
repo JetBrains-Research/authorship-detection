@@ -52,7 +52,8 @@ class BaseClassifier:
         self.__chosen_classes = chosen_classes
 
     # Create training and validation dataset.
-    def _split_train_test(self, loader: PathMinerLoader, fold_ind: int) -> Tuple[PathMinerDataset, PathMinerDataset]:
+    def _split_train_test(self, loader: PathMinerLoader, fold_ind: int, pad: bool = False) \
+            -> Tuple[PathMinerDataset, PathMinerDataset]:
         chosen_classes = self.__chosen_classes
         test_size = self.config.test_size()
         if isinstance(test_size, int):
@@ -77,9 +78,9 @@ class BaseClassifier:
                 for inds in self.__indices_per_class[chosen_classes]
             ])
 
-        return PathMinerDataset.from_loader(loader, np.array(train_indices, dtype=np.int32), False,
+        return PathMinerDataset.from_loader(loader, np.array(train_indices, dtype=np.int32), pad,
                                             use_explicit_features=self.config.use_explicit_features()), \
-               PathMinerDataset.from_loader(loader, np.array(test_indices, dtype=np.int32), False,
+               PathMinerDataset.from_loader(loader, np.array(test_indices, dtype=np.int32), pad,
                                             use_explicit_features=self.config.use_explicit_features())
 
     def _n_folds(self) -> int:
