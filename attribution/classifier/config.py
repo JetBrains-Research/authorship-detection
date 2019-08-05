@@ -18,6 +18,9 @@ class Config:
     def source_folder(self):
         return self.__get('source_folder')
 
+    def split_folder(self):
+        return self.__get('split_folder')
+
     def features(self):
         return self.__get('features')
 
@@ -63,6 +66,9 @@ class Config:
 
     def log_batches(self):
         return self.__get('log_batches')
+
+    def time_folds(self):
+        return self.__get('time_folds')
 
     def __get(self, param):
         try:

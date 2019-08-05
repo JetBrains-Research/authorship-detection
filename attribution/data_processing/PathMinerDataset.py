@@ -20,7 +20,7 @@ class PathMinerDataset(Dataset):
         self._should_pad = should_pad
         if should_pad:
             # self._pad_length = max([len(arr) for arr in self.contexts.starts])
-            self._pad_length = 400
+            self._pad_length = 200
             # print(self._pad_length)
 
     @classmethod
@@ -37,6 +37,10 @@ class PathMinerDataset(Dataset):
             explicit_features = None
 
         return cls(contexts, labels, should_pad, explicit_features=explicit_features)
+
+    @classmethod
+    def from_timesplit_loader(cls, loader: PathMinerLoader, time_fold_ind: int, should_pad: bool = True):
+        return cls(loader.path_contexts()[time_fold_ind], loader.labels()[time_fold_ind], should_pad)
 
     def __len__(self):
         return self._size

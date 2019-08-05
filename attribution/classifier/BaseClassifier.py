@@ -13,9 +13,12 @@ class BaseClassifier:
     def __init__(self, config: Config):
         self.config = config
         self.__fix_random()
-        self._loader = self.__get_loader(config.source_folder())
-        self.__indices_per_class, self._n_classes = self.__split_into_classes(self._loader)
-        self.update_chosen_classes()
+        if config.split_folder() is None:
+            self._loader = self.__get_loader(config.source_folder())
+            self.__indices_per_class, self._n_classes = self.__split_into_classes(self._loader)
+            self.update_chosen_classes()
+        else:
+            self._loader = self._get_timesplit_loader()
 
     def __fix_random(self):
         np.random.seed(self.config.seed())
@@ -25,6 +28,11 @@ class BaseClassifier:
         print("Waiting for loader")
         return PathMinerLoader.from_folder(folder, transform=self.__label_contexts,
                                            use_explicit_features=self.config.use_explicit_features())
+
+    def _get_timesplit_loader(self) -> PathMinerLoader:
+        print("Waiting for loader")
+        return PathMinerLoader.from_timesplit(self.config.source_folder(), self.config.split_folder(),
+                                              list(range(1, self.config.time_folds() + 1)), self.config.n_classes())
 
     # Add labels with project info to path contexts.
     def __label_contexts(self, project_paths: np.ndarray) -> np.ndarray:

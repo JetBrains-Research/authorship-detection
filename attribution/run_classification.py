@@ -32,14 +32,27 @@ def main(args):
             classifier.update_chosen_classes()
         mean = float(np.mean(scores))
         std = float(np.std(scores))
+        print(f'{mean:.3f}+-{std:.3f}')
+        yaml.dump({
+            'mean': mean,
+            'std': std,
+            'scores': scores
+        }, output_file(args.config_file), default_flow_style=False)
+    elif config.split_folder() is not None:
+        scores = classifier.timesplit_validate()
+        print(scores)
+        yaml.dump({
+            f'scores_{fold_ind+1:02d}': scores[fold_ind] for fold_ind in range(config.time_folds() - 1)
+        }, output_file(args.config_file), default_flow_style=False)
     else:
         mean, std, scores = classifier.cross_validate()
-    print(f'{mean:.3f}+-{std:.3f}')
-    yaml.dump({
-        'mean': mean,
-        'std': std,
-        'scores': scores
-    }, output_file(args.config_file), default_flow_style=False)
+        print(f'{mean:.3f}+-{std:.3f}')
+        yaml.dump({
+            'mean': mean,
+            'std': std,
+            'scores': scores
+        }, output_file(args.config_file), default_flow_style=False)
+
 
 
 if __name__ == '__main__':
