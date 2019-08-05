@@ -26,7 +26,7 @@ class NNClassifier(BaseClassifier):
     def __train(self, train_loader, test_loaders, model, optimizer, loss_function, n_epochs, log_batches, batch_size,
                 single_eval):
         print("Start training")
-        accuracies = []
+        accuracies = [0.] * len(test_loaders)
         for epoch in range(n_epochs):
             print("Epoch #{}".format(epoch + 1))
             current_loss = 0
@@ -48,8 +48,7 @@ class NNClassifier(BaseClassifier):
                     start_time = time.time()
 
             with torch.no_grad():
-                step_accuracies = []
-                for test_loader in test_loaders:
+                for i, test_loader in enumerate(test_loaders):
                     total = len(test_loader.dataset)
                     predictions = np.zeros(total)
                     targets = np.zeros(total)
@@ -68,11 +67,8 @@ class NNClassifier(BaseClassifier):
                     # print(targets)
                     accuracy = accuracy_score(targets, predictions)
                     print(f"accuracy: {accuracy}")
-                    step_accuracies.append(accuracy)
-                if single_eval == 1:
-                    accuracies.append(step_accuracies[0])
-                else:
-                    accuracies.append(step_accuracies)
+                    accuracies[i] = max(accuracies[i], accuracy)
+
         print("Training completed")
         return accuracies
 

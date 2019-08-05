@@ -1,4 +1,5 @@
 from os import path
+from os.path import isfile
 from typing import Tuple, Callable, Union, List
 
 import numpy as np
@@ -128,6 +129,9 @@ class PathMinerLoader:
 
     @staticmethod
     def _load_timesplit_file(timesplit_file) -> Tuple[int, PathContexts]:
+        if not isfile(timesplit_file):
+            return 0, PathContexts([], [], [])
+
         contexts = pd.read_csv(timesplit_file, sep=',')
         path_contexts = contexts.pathsAfter.fillna('').map(
             lambda ctx: np.array(list(map(PathContext.fromstring, ctx.split(';'))), dtype=np.object)
