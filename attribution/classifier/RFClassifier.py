@@ -19,6 +19,7 @@ class RFClassifier(BaseClassifier):
         print(self.config.use_explicit_features())
 
     def __build_sparse_matrix(self, dataset: PathMinerDataset, features: List[str]) -> csc_matrix:
+        print("Building sparse matrix")
         feature_counts = [self.__feature_count(f) for f in features]
         data = []
         row_ind, col_ind = [], []
@@ -86,16 +87,21 @@ class RFClassifier(BaseClassifier):
         print(scores)
         return float(np.mean(scores)), float(np.std(scores)), scores
 
-    def __run_classifier(self, X_train, X_test, y_train, y_test) -> float:
+    def __run_classifier(self, X_train, X_test, y_train, y_test, single=True) -> Union[float, List[float]]:
         params = self.config.params()
         model = RandomForestClassifier(**params)
+        print("Fitting classifier")
         model.fit(X_train, y_train)
-        predictions = model.predict(X_test)
-        return accuracy_score(y_test, predictions)
+        print("Making predictions")
+        if single:
+            predictions = model.predict(X_test)
+            return accuracy_score(y_test, predictions)
+        else:
+            return [accuracy_score(y, model.predict(X)) for X, y in zip(X_test, y_test)]
 
     def __top_features(self, feature_matrix: Union[np.ndarray, csc_matrix], labels: np.ndarray,
                        n_count: int) -> Union[np.ndarray, csc_matrix]:
-
+        print("Filtering")
         if feature_matrix.shape[1] <= n_count:
             return feature_matrix
         mutual_information = self.__mutual_information(feature_matrix, labels)
@@ -109,8 +115,44 @@ class RFClassifier(BaseClassifier):
                 self.__feature_scores = np.fromfile(save_filename)
             else:
                 print("Computing mutual information")
-                mutual_information = mutual_info_classif(feature_matrix, labels)
+                mutual_information = mutual_info_classif(feature_matrix, labels, discrete_features=True)
                 print(mutual_information)
                 mutual_information.tofile(save_filename)
                 self.__feature_scores = mutual_information
         return self.__feature_scores
+
+    def timesplit_validate(self) -> List[List[float]]:
+        print("Begin timesplit validation")
+        datasets = [PathMinerDataset.from_timesplit_loader(self._loader, fold)
+                    for fold in range(self.config.time_folds())]
+        labels = [dataset.labels() for dataset in datasets]
+        matrices = []
+        for dataset in datasets:
+            matrix = self.__build_sparse_matrix(dataset, self.config.features())
+            print(matrix.shape)
+            matrices.append(matrix)
+
+        if self.config.feature_count() is not None:
+            # print("Stacking matrices")
+            # lengths = [matrix.shape[0] for matrix in matrices]
+            # stacked_matrices = vstack(matrices)
+            # stacked_labels = np.concatenate(labels)
+            # filtered_matrix = self.__top_features(stacked_matrices, stacked_labels, self.config.feature_count())
+            # cur = 0
+            # for i, length in enumerate(lengths):
+            #     matrices[i] = filtered_matrix[cur:cur+length]
+            #     cur += length
+            for i, (matrix, label) in enumerate(zip(matrices, labels)):
+                matrices[i] = self.__top_features(matrix, label, self.config.feature_count())
+            print("Finished filtering")
+        scores = []
+        for train_fold_ind in range(self.config.time_folds() - 1):
+            scores.append(self.__run_classifier(
+                matrices[train_fold_ind],
+                matrices[train_fold_ind + 1:],
+                labels[train_fold_ind],
+                labels[train_fold_ind + 1:],
+                single=False
+            ))
+            print(scores[-1])
+        return scores

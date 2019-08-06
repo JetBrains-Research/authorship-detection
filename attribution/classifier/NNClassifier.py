@@ -104,7 +104,7 @@ class NNClassifier(BaseClassifier):
         return float(np.mean(scores)), float(np.std(scores)), scores
 
     def timesplit_validate(self) -> List[List[float]]:
-        print("Begin cross validation")
+        print("Begin timesplit validation")
         datasets = [PathMinerDataset.from_timesplit_loader(self._loader, fold)
                     for fold in range(self.config.time_folds())]
         scores = []
