@@ -23,6 +23,12 @@ class NNClassifier(BaseClassifier):
         test_loader = DataLoader(test_dataset, self.config.batch_size())
         return train_loader, test_loader
 
+    def __contextsplit_sample_loaders(self, depth: int = 0, random: bool = False) -> Tuple[DataLoader, DataLoader]:
+        train_dataset, test_dataset = self._context_split(self._loader, depth, random=random, pad=True)
+        train_loader = DataLoader(train_dataset, self.config.batch_size(), shuffle=True)
+        test_loader = DataLoader(test_dataset, self.config.batch_size())
+        return train_loader, test_loader
+
     def __train(self, train_loader, test_loaders, model, optimizer, loss_function, n_epochs, log_batches, batch_size,
                 single_eval):
         print("Start training")
@@ -108,9 +114,24 @@ class NNClassifier(BaseClassifier):
         datasets = [PathMinerDataset.from_timesplit_loader(self._loader, fold)
                     for fold in range(self.config.time_folds())]
         scores = []
-        for train_fold_ind in range(self.config.time_folds() - 1):
+        for train_fold_ind in range(self.config.time_folds() - 1, self.config.time_folds()):
             train_loader = DataLoader(datasets[train_fold_ind], self.config.batch_size(), shuffle=True)
+            # test_loaders = [DataLoader(datasets[test_fold_ind], self.config.batch_size())
+            #                 for test_fold_ind in range(train_fold_ind + 1, self.config.time_folds())]
             test_loaders = [DataLoader(datasets[test_fold_ind], self.config.batch_size())
-                            for test_fold_ind in range(train_fold_ind + 1, self.config.time_folds())]
+                            for test_fold_ind in range(0, self.config.time_folds()) if test_fold_ind != train_fold_ind]
             scores.append(self.__run_classifier(train_loader, test_loaders, single=False))
         return scores
+
+    def contextsplit_validate(self) -> Tuple[float, float, List[float]]:
+        print("Begin contextsplit validation")
+        scores = []
+        for depth in range(self.config.contextsplit_depth()):
+            train_loader, test_loader = self.__contextsplit_sample_loaders(depth)
+            scores.append(float(self.__run_classifier(train_loader, test_loader)))
+        print(scores)
+        return float(np.mean(scores)), float(np.std(scores)), scores
+
+    def random_contextsplit(self) -> float:
+        train_loader, test_loader = self.__contextsplit_sample_loaders(random=True)
+        return self.__run_classifier(train_loader, test_loader)

@@ -34,6 +34,18 @@ class Config:
     def seed(self):
         return self.__get('seed')
 
+    def entities(self):
+        return self.__get('entities')
+
+    def entities_folder(self):
+        return self.__get('entities_folder')
+
+    def change_ids_folder(self):
+        return self.__get('change_ids_folder')
+
+    def contextsplit_depth(self):
+        return self.__get('contextsplit_depth')
+
     def n_classes(self):
         return self.__get('n_classes')
 
@@ -51,6 +63,9 @@ class Config:
 
     def use_explicit_features(self):
         return self.features() is not None and 'explicit' in self.features()
+
+    def random_contextsplit(self):
+        return self.__get('random_contextsplit')
 
     def epochs(self):
         return self.__get('epochs')

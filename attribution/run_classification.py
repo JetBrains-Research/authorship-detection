@@ -44,6 +44,18 @@ def main(args):
         yaml.dump({
             f'scores_{fold_ind+1:02d}': scores[fold_ind] for fold_ind in range(config.time_folds() - 1)
         }, output_file(args.config_file), default_flow_style=False)
+    elif config.contextsplit_depth() is not None:
+        if config.random_contextsplit() is not None:
+            scores = classifier.random_contextsplit()
+            mean, std = scores, 0
+        else:
+            mean, std, scores = classifier.contextsplit_validate()
+        print(f'{mean:.3f}+-{std:.3f}')
+        yaml.dump({
+            'mean': mean,
+            'std': std,
+            'scores': scores
+        }, output_file(args.config_file), default_flow_style=False)
     else:
         mean, std, scores = classifier.cross_validate()
         print(f'{mean:.3f}+-{std:.3f}')
@@ -52,7 +64,6 @@ def main(args):
             'std': std,
             'scores': scores
         }, output_file(args.config_file), default_flow_style=False)
-
 
 
 if __name__ == '__main__':
