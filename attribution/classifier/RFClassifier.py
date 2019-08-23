@@ -14,7 +14,7 @@ class RFClassifier(BaseClassifier):
     def __init__(self, config: Config):
         super(RFClassifier, self).__init__(config)
         self.__feature_scores = None
-        print(self.config.use_explicit_features())
+        # print(self.config.use_explicit_features())
 
     def __build_sparse_matrix(self, dataset: PathMinerDataset, features: List[str]) -> csc_matrix:
         # print("Building sparse matrix")
