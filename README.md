@@ -19,7 +19,11 @@ Upon the publication we will release the reusable version of data collection pip
 
 To install conda, follow the [instructions](https://docs.conda.io/projects/conda/en/latest/user-guide/install/) for your system.
 
-To create the environment run  `conda env create -f environment.yml`.
+To create the environment run:
+```
+conda env create -f environment.yml
+conda activate authorship-detection
+```
 
 To run the model, go to `attribution` folder and run `./run.sh path_to_config`, for example:
 ```
