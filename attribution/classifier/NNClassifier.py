@@ -105,7 +105,7 @@ class NNClassifier(BaseClassifier):
             print(f"Iteration {n_fold + 1}")
             train_loader, test_loader = self.__sample_loaders(n_fold)
             scores.append(float(self.__run_classifier(train_loader, test_loader)))
-            print(f"Accuracy at iteration {n_fold}: {scores[-1]}")
+            print(f"Accuracy at iteration {n_fold + 1}: {scores[-1]}")
         print(scores)
         return float(np.mean(scores)), float(np.std(scores)), scores
 

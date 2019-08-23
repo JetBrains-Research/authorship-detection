@@ -8,7 +8,7 @@ Upon the publication we will release the reusable version of data collection pip
 ## Contents
 
 * `datasets` folder contains raw Java code of 40 single-authored projects that form a dataset
-* `processed` folder contains extracted tokens, paths, and path-contexts extracted from the dataset
+* `processed` folder contains tokens, paths, and path-contexts extracted from the dataset
 * `attribution` folder contains Python code that reproduces our experiments
 * `attribution/configurations` is a folder with configurations of PbRF and PbNN models used for evaluation
 * `attribution/output` contains corresponding results for all the configurations
