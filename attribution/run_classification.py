@@ -1,9 +1,7 @@
 import argparse
-import os
-
 import numpy as np
+import os
 import yaml
-
 from classifier.NNClassifier import NNClassifier
 from classifier.RFClassifier import RFClassifier
 from classifier.config import Config
@@ -19,8 +17,8 @@ def output_file(input_file):
 
 def main(args):
     if os.path.isfile(output_filename(args.config_file)):
-        print("Already processed")
-        exit(0)
+        print("Already processed!")
+        # exit(0)
 
     config = Config.fromyaml(args.config_file)
     classifier = NNClassifier(config) if config.classifier_type() == 'nn' else RFClassifier(config)
