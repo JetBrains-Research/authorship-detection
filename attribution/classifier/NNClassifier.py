@@ -1,16 +1,14 @@
-import time
-from typing import Tuple, List, Union
-
 import numpy as np
+import time
 import torch
-from sklearn.metrics import accuracy_score
-from torch import optim, nn
-from torch.utils.data import DataLoader
-
 from classifier.BaseClassifier import BaseClassifier
 from classifier.config import Config
 from data_processing.PathMinerDataset import PathMinerDataset
 from model.ProjectClassifier import ProjectClassifier
+from sklearn.metrics import accuracy_score
+from torch import optim, nn
+from torch.utils.data import DataLoader
+from typing import Tuple, List, Union
 
 
 class NNClassifier(BaseClassifier):
@@ -104,8 +102,10 @@ class NNClassifier(BaseClassifier):
         print("Begin cross validation")
         scores = []
         for n_fold in range(self._n_folds()):
+            print(f"Iteration {n_fold + 1}")
             train_loader, test_loader = self.__sample_loaders(n_fold)
             scores.append(float(self.__run_classifier(train_loader, test_loader)))
+            print(f"Accuracy at iteration {n_fold}: {scores[-1]}")
         print(scores)
         return float(np.mean(scores)), float(np.std(scores)), scores
 

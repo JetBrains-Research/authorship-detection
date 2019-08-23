@@ -1,13 +1,11 @@
-import os
-from math import ceil
-from typing import Tuple
-
 import numpy as np
+import os
 import pandas as pd
-
 from classifier.config import Config
 from data_processing.PathMinerDataset import PathMinerDataset
 from data_processing.PathMinerLoader import PathMinerLoader
+from math import ceil
+from typing import Tuple
 
 
 class BaseClassifier:
@@ -42,17 +40,17 @@ class BaseClassifier:
         self.__seed = self.config.seed()
 
     def __get_loader(self, folder: str) -> PathMinerLoader:
-        print("Waiting for loader")
+        print("Loading data")
         return PathMinerLoader.from_folder(folder, transform=self.__label_contexts,
                                            use_explicit_features=self.config.use_explicit_features())
 
     def _get_timesplit_loader(self) -> PathMinerLoader:
-        print("Waiting for loader")
+        print("Loading data")
         return PathMinerLoader.from_timesplit(self.config.source_folder(), self.config.split_folder(),
                                               list(range(1, self.config.time_folds() + 1)), self.config.n_classes())
 
     def _get_contextsplit_loader(self) -> PathMinerLoader:
-        print("Waiting for loader")
+        print("Loading data")
         return PathMinerLoader.from_contextsplit(self.config.source_folder(), self.config.entities_folder(),
                                                  self.config.entities())
 
@@ -64,7 +62,7 @@ class BaseClassifier:
         return labels
 
     def __split_into_classes(self, loader: PathMinerLoader) -> Tuple[np.ndarray, int]:
-        print("Splitting into classes")
+        print("Splitting data into classes")
         index = loader.labels()
         n_classes = np.unique(index).size
         indices_per_class = [[] for _ in range(n_classes)]

@@ -1,15 +1,13 @@
-import os
-from typing import List, Tuple, Union
-
 import numpy as np
+import os
+from classifier.BaseClassifier import BaseClassifier
+from classifier.config import Config
+from data_processing.PathMinerDataset import PathMinerDataset
 from scipy.sparse import csc_matrix
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_selection import mutual_info_classif
 from sklearn.metrics import accuracy_score
-
-from classifier.BaseClassifier import BaseClassifier
-from classifier.config import Config
-from data_processing.PathMinerDataset import PathMinerDataset
+from typing import List, Tuple, Union
 
 
 class RFClassifier(BaseClassifier):
@@ -19,7 +17,7 @@ class RFClassifier(BaseClassifier):
         print(self.config.use_explicit_features())
 
     def __build_sparse_matrix(self, dataset: PathMinerDataset, features: List[str]) -> csc_matrix:
-        print("Building sparse matrix")
+        # print("Building sparse matrix")
         feature_counts = [self.__feature_count(f) for f in features]
         data = []
         row_ind, col_ind = [], []
@@ -75,7 +73,7 @@ class RFClassifier(BaseClassifier):
             X_train = self.__top_features(X_train, train_dataset.labels(), self.config.feature_count())
             X_test = self.__top_features(X_test, test_dataset.labels(), self.config.feature_count())
 
-        print(X_train.shape, y_train.shape, X_test.shape, y_test.shape)
+        # print(X_train.shape, y_train.shape, X_test.shape, y_test.shape)
         return X_train, X_test, y_train, y_test
 
     def __create_contextsplit_samples(self, depth: int = 0, random: bool = False):
@@ -102,8 +100,10 @@ class RFClassifier(BaseClassifier):
         print("Begin cross validation")
         scores = []
         for n_fold in range(self._n_folds()):
+            print(f"Iteration {n_fold + 1}")
             X_train, X_test, y_train, y_test = self.__create_samples(n_fold)
             scores.append(float(self.__run_classifier(X_train, X_test, y_train, y_test)))
+            print(f"Accuracy at iteration {n_fold}: {scores[-1]}")
         print(scores)
         return float(np.mean(scores)), float(np.std(scores)), scores
 
@@ -122,9 +122,9 @@ class RFClassifier(BaseClassifier):
     def __run_classifier(self, X_train, X_test, y_train, y_test, single=True) -> Union[float, List[float]]:
         params = self.config.params()
         model = RandomForestClassifier(**params)
-        print("Fitting classifier")
+        print("Fitting classifier...")
         model.fit(X_train, y_train)
-        print("Making predictions")
+        print("Making predictions...")
         if single:
             predictions = model.predict(X_test)
             return accuracy_score(y_test, predictions)
