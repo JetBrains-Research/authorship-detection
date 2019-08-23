@@ -1,0 +1,18 @@
+mutual_info_file: "mutual_info/timesplit_20.numpy"
+source_folder: "/home/egor/Work/codestyle/code/code2vec/dataset/idea-changes/"
+split_folder: "/home/egor/Work/codestyle/code/code2vec/dataset/idea-changes/creations/time_split_balanced/"
+seed: 239
+n_classes: 20
+time_folds: 10
+features:
+  - "paths"
+  - "starts"
+seed: 239
+feature_count: 50000
+params:
+  n_estimators: 200
+  n_jobs: -1
+  min_samples_leaf: 1
+  min_samples_split: 2
+  max_features: 'sqrt'
+  random_state: 239

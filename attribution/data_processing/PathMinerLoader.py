@@ -29,17 +29,28 @@ class PathMinerLoader:
             self._n_classes = len(path_contexts_file[0])
             self._path_contexts = []
             self._indices = []
+            self._change_ids = []
             for time_fold, fold_files in enumerate(path_contexts_file):
-                indices, path_contexts = [], []
+                indices, path_contexts, change_ids = [], [], []
                 for i, pc_file in enumerate(fold_files):
-                    num, pcs = self._load_timesplit_file(pc_file)
+                    num, pcs, cis = self._load_timesplit_file(pc_file)
                     indices.append(np.full(num, i, dtype=np.int32))
+                    change_ids.append(cis)
                     path_contexts.append(pcs)
 
                 indices = np.concatenate(indices, axis=0)
+                change_ids = np.concatenate(change_ids, axis=0)
                 path_contexts = concat_path_contexts(path_contexts)
                 self._indices.append(indices)
                 self._path_contexts.append(path_contexts)
+                self._change_ids.append(change_ids)
+
+            if len(self._indices) == 1:
+                self._indices = self._indices[0]
+                self._path_contexts = self._path_contexts[0]
+                self._change_ids = self._change_ids[0]
+
+            print(self._change_ids)
             self._labels = self._indices
 
         self._use_explicit_features = explicit_features_files is not None
@@ -69,6 +80,14 @@ class PathMinerLoader:
                    path.join(dataset_folder, 'node_types.csv'),
                    [[path.join(splits_folder, f'stamp_{time_fold:02d}/author_{author + 1:03d}.csv')
                      for author in range(n_classes)] for time_fold in time_folds]
+                   )
+
+    @classmethod
+    def from_contextsplit(cls, dataset_folder: str, entities_folder: str, entities: List[int]):
+        return cls(path.join(dataset_folder, 'tokens.csv'),
+                   path.join(dataset_folder, 'paths.csv'),
+                   path.join(dataset_folder, 'node_types.csv'),
+                   [[path.join(entities_folder, f'changes_{entity}.csv') for entity in entities]]
                    )
 
     # Token loading is slightly complex because tokens can contain any symbols
@@ -128,9 +147,10 @@ class PathMinerLoader:
         return labels, PathContexts(starts, paths, ends)
 
     @staticmethod
-    def _load_timesplit_file(timesplit_file) -> Tuple[int, PathContexts]:
+    def _load_timesplit_file(timesplit_file) \
+            -> Union[Tuple[int, PathContexts], Tuple[int, PathContexts, np.ndarray]]:
         if not isfile(timesplit_file):
-            return 0, PathContexts([], [], [])
+            return 0, PathContexts([], [], []), np.array([])
 
         contexts = pd.read_csv(timesplit_file, sep=',')
         path_contexts = contexts.pathsAfter.fillna('').map(
@@ -149,8 +169,8 @@ class PathMinerLoader:
         ends = path_contexts.map(
             lambda ctx_array: np.fromiter(map(lambda ctx: ctx.end_token, ctx_array), np.int32, count=ctx_array.size)
         ).values
-
-        return len(path_contexts), PathContexts(starts, paths, ends)
+        change_ids = contexts.changeId
+        return len(path_contexts), PathContexts(starts, paths, ends), change_ids.values
 
     @staticmethod
     def _series_to_ndarray(indices, values) -> np.ndarray:
@@ -191,3 +211,6 @@ class PathMinerLoader:
 
     def explicit_features(self) -> np.ndarray:
         return self._explicit_features
+
+    def change_ids(self) -> np.ndarray:
+        return self._change_ids

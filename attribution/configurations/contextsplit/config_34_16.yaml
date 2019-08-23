@@ -1,0 +1,12 @@
+source_folder: "/home/egor/Work/codestyle/code/code2vec/dataset/idea-changes/"
+entities_folder: "/home/egor/Work/codestyle/code/code2vec/dataset/idea-changes/creations/entity/"
+change_ids_folder: "/home/egor/Work/codestyle/code/code2vec/dataset/idea-changes/changes_split/"
+classifier_type: "nn"
+seed: 239
+epochs: 5
+batch_size: 256
+hidden_dim: 16
+learning_rate: 0.01
+log_batches: 100
+entities: [67,80,298,406,174,316,276,186,65,225,113,244,45,249,360,207,155,138,74,385,202,157,392,114,119,137,286,319,37,124,196,347,255,234]
+contextsplit_depth: 10
