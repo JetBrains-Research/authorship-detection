@@ -7,4 +7,4 @@ epochs: 10
 batch_size: 16
 hidden_dim: 16
 learning_rate: 0.01
-log_batches: 10
+log_batches: 80
