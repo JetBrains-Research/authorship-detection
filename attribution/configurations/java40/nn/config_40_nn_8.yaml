@@ -1,0 +1,10 @@
+source_folder: "../processed/java40"
+label_position: 3
+classifier_type: "nn"
+seed: 239
+test_size: 0.1
+epochs: 10
+batch_size: 16
+hidden_dim: 8
+learning_rate: 0.01
+log_batches: 10
