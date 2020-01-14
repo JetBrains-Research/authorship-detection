@@ -98,7 +98,7 @@ fun processEntries(entries: List<ChangeEntry>, pathStorage: PathStorage, methodM
 }
 
 fun processRepositoryData(repoName: String) {
-    val blobListFile = "../pythonminer/data/exploded/$repoName/infos_full.csv"
+    val blobListFile = "../gitminer/data/exploded/$repoName/infos_full.csv"
     val lines = Files.readLines(File(blobListFile), Charsets.UTF_8)
     val settings = CsvSettings(lines.first())
     println("${lines.size} entries read")

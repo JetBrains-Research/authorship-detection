@@ -6,7 +6,7 @@ import com.github.gumtreediff.tree.TreeContext
 
 fun readAndParseBlob(blobId: BlobId?, repoName: String): TreeContext? {
     if (blobId == null) return null
-    val file = "../pythonminer/data/exploded/$repoName/blobs/${blobId.id}"
+    val file = "../gitminer/data/exploded/$repoName/blobs/${blobId.id}"
     return parse(file)
 }
 
