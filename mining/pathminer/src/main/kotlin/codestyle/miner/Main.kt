@@ -10,7 +10,7 @@ import java.io.FileWriter
 import kotlin.concurrent.thread
 
 fun readRepoNames(): List<String> {
-    return File("../pythonminer/projects.txt").readLines().map { it.trim() }
+    return File("../projects.txt").readLines().map { it.trim() }
 }
 
 fun main(args: Array<String>) {
