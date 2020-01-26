@@ -62,7 +62,5 @@ def run():
 
     # At this point all necessary data should be in gitminer/out
 
-    os.chdir("../representation_pipeline")
-    subprocess.run(["python3", "run_all.py", "--n_time_buckets", "3"])
 
 run()
