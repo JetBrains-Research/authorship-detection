@@ -1,1 +1,1 @@
-https://github.com/elastic/ecs-logging-java.git
+https://github.com/facebook/fresco

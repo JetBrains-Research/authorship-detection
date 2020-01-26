@@ -58,12 +58,11 @@ def run():
         repo_processor.explode_repo()
 
     os.chdir(".")
-    subprocess.run(["java", "-jar", "../gumtree-trial/extract-path-contexts.jar"])
+    subprocess.run(["java", "-jar", "../pathminer/extract-path-contexts.jar"])
 
     # At this point all necessary data should be in gitminer/out
 
-    # os.chdir("../code2vec/representation_pipeline")
-    # subprocess.run(["python3", "run_all.py", "--pack_size", "4", "--embedding_size", "8", "--min_samples", "4", "--n_time_buckets", "2"])
-
+    os.chdir("../representation_pipeline")
+    subprocess.run(["python3", "run_all.py", "--n_time_buckets", "3"])
 
 run()
