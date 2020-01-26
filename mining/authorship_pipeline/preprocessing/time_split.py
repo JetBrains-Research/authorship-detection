@@ -9,7 +9,7 @@ import pandas as pd
 
 from preprocessing.compute_occurrences import compute_occurrences
 from preprocessing.resolve_entities import resolve_entities
-from preprocessing.util import ProcessedFolder
+from util import ProcessedFolder
 
 
 def continuous_distribution(change_metadata: pd.DataFrame, change_occurrences: Counter, n_time_buckets: int,

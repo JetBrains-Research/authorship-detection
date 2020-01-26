@@ -4,7 +4,7 @@ from argparse import ArgumentParser
 
 import pandas as pd
 
-from preprocessing.util import ProcessedFolder
+from util import ProcessedFolder
 
 
 class NaiveEntityMerger:

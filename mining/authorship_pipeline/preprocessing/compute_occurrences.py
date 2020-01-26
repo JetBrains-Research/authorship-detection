@@ -7,7 +7,7 @@ from typing import Tuple, Dict
 import pandas as pd
 
 from preprocessing.resolve_entities import resolve_entities
-from preprocessing.util import ProcessedFolder
+from util import ProcessedFolder
 
 
 def compute_occurrences(processed_folder: ProcessedFolder) -> Tuple[Counter, Counter, Dict, int]:

@@ -5,7 +5,7 @@ import numpy as np
 from preprocessing.compute_occurrences import compute_occurrences
 from preprocessing.merge_aliases_bipartite import merge_aliases_bipartite
 from preprocessing.time_split import time_split
-from preprocessing.util import ProcessedFolder
+from util import ProcessedFolder
 
 
 def fix_seed(seed: int):
