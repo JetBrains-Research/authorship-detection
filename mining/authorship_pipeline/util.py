@@ -29,19 +29,19 @@ class ProcessedFolder:
         self._n_tokens = None
         self._n_paths = None
 
-    def time_buckets_split(self, n_buckets):
+    def time_buckets_split(self, n_buckets) -> str:
         return os.path.join(self.generated_folder, self._time_buckets_split.format(n_buckets))
 
-    def time_buckets_range(self, n_buckets):
+    def time_buckets_range(self, n_buckets) -> str:
         return os.path.join(self.generated_folder, self._time_buckets_range.format(n_buckets))
 
-    def n_tokens(self):
+    def n_tokens(self) -> int:
         if self._n_tokens is None:
             tokens = pd.read_csv(self.tokens_file, index_col=0)
             self._n_tokens = len(tokens)
         return self._n_tokens
 
-    def n_paths(self):
+    def n_paths(self) -> int:
         if self._n_paths is None:
             paths = pd.read_csv(self.path_ids_file, index_col=0)
             self._n_paths = len(paths)
