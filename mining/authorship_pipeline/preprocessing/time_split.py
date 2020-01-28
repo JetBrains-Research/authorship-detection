@@ -82,11 +82,11 @@ def uni_distribution(author_occurrences: Counter, change_metadata: pd.DataFrame,
         for i in range(n_time_buckets):
             entity.append(author)
             bucket_ind.append(i)
+            if bucket_start_times[author][i] is None:
+                bucket_start_times[author][i] = bucket_finish_times[author][i - 1]
+                bucket_finish_times[author][i] = bucket_finish_times[author][i - 1]
             start = bucket_start_times[author][i]
             finish = bucket_finish_times[author][i]
-            if start is None:
-                start = bucket_finish_times[author][i - 1]
-                finish = bucket_finish_times[author][i - 1]
             start_time.append(start)
             finish_time.append(finish)
 
