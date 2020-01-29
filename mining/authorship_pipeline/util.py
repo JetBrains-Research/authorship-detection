@@ -23,6 +23,7 @@ class ProcessedFolder:
         self.author_to_changes = os.path.join(self.generated_folder, "author_to_changes.pkl")
         self.unknown_entities = os.path.join(self.generated_folder, "unknown_entities.txt")
         self.readable_entities = os.path.join(self.generated_folder, "readable_entities.csv")
+        self.context_split = os.path.join(self.generated_folder, "context_split.pkl")
         self.file_changes = [os.path.join(folder, f) for f in os.listdir(folder) if f.startswith("file_changes")]
         self._time_buckets_split = "time_buckets_split_{}.pkl"
         self._time_buckets_range = "time_buckets_range_{}.csv"
