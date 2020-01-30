@@ -1,8 +1,10 @@
 import os
-import pandas as pd
 import time
+
+import pandas as pd
 from git import Repo
 from pandas import DataFrame
+
 from path_settings import PathSettings
 
 
