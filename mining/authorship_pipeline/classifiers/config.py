@@ -30,9 +30,6 @@ class Config:
     def entities(self):
         return self.__get('entities')
 
-    def contextsplit_depth(self):
-        return self.__get('contextsplit_depth')
-
     def n_classes(self):
         return self.__get('n_classes')
 
@@ -47,9 +44,6 @@ class Config:
 
     def mutual_info_file(self):
         return self.__get('mutual_info_file')
-
-    def random_contextsplit(self):
-        return self.__get('random_contextsplit')
 
     def epochs(self):
         return self.__get('epochs')
@@ -69,6 +63,9 @@ class Config:
     def time_folds(self):
         return self.__get('time_folds')
 
+    def mode(self):
+        return self.__get('mode')
+
     def min_max_count(self):
         min_count = self.__get('min_count')
         if min_count is None:
@@ -77,6 +74,15 @@ class Config:
         if max_count is None:
             max_count = 10 ** 9
         return min_count, max_count
+
+    def min_max_train(self):
+        min_train = self.__get('min_train')
+        if min_train is None:
+            min_train = 0.7
+        max_train = self.__get('max_train')
+        if max_train is None:
+            max_train = 0.8
+        return min_train, max_train
 
     def __get(self, param):
         try:

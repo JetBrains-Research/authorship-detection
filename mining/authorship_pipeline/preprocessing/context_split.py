@@ -240,11 +240,11 @@ def _find_split(entity: int, change_entities: pd.Series, min_depth: int, max_dep
     return resulting_split, True, cur_size
 
 
-def context_split(processed_folder: ProcessedFolder, min_count: int = 100,
+def context_split(processed_folder: ProcessedFolder, min_count: int = 100, max_count: int = 10 ** 9,
                   min_train: float = 0.7, max_train: float = 0.8) -> List[ContextSplit]:
-    if os.path.exists(processed_folder.context_split):
+    if os.path.exists(processed_folder.context_split(min_train, max_train, min_count)):
         print("Loading context-split data")
-        return pickle.load(open(processed_folder.context_split, 'rb'))
+        return pickle.load(open(processed_folder.context_split(min_train, max_train, min_count), 'rb'))
 
     print("Splitting changes by context")
     change_metadata = pd.read_csv(
@@ -258,8 +258,9 @@ def context_split(processed_folder: ProcessedFolder, min_count: int = 100,
     change_entities = resolve_entities(processed_folder)
 
     project_root = _build_tree(change_metadata, change_entities, change_occurrences,
-                               lambda change_id: change_occurrences[change_id] > 0 and
-                                                 author_occurrences[change_entities[change_id]] >= min_count
+                               lambda change_id:
+                               change_occurrences[change_id] > 0 and
+                               min_count <= author_occurrences[change_entities[change_id]] <= max_count
                                )
 
     project_root.print_tree(n_tabs=0, assert_rule=lambda n: n.depth > 3)
@@ -288,7 +289,7 @@ def context_split(processed_folder: ProcessedFolder, min_count: int = 100,
             _merge_splits(resulting_split, author_split)
 
     print(f"Kept {success_size / project_root.count * 100:.2f}% of changes by {author_success}/{len(authors)} authors")
-    pickle.dump(resulting_split, open(processed_folder.context_split, 'wb'))
+    pickle.dump(resulting_split, open(processed_folder.context_split(min_train, max_train, min_count), 'wb'))
     print("Buckets saved on disk")
     return resulting_split
 

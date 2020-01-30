@@ -11,26 +11,21 @@ from torch.utils.data import DataLoader
 from classifiers.BaseClassifier import BaseClassifier, ClassificationResult
 from classifiers.config import Config
 from model.ProjectClassifier import ProjectClassifier
+from preprocessing.context_split import ContextSplit
 from util import ProcessedFolder
 
 
 class NNClassifier(BaseClassifier):
     def __init__(self, config: Config, project_folder: ProcessedFolder, change_entities: pd.Series,
-                 change_to_time_bucket: Dict, min_max_count: Tuple[int, int]):
+                 change_to_time_bucket: Dict, min_max_count: Tuple[int, int], context_splits: List[ContextSplit]):
         super(NNClassifier, self).__init__(config, project_folder, change_entities, change_to_time_bucket,
-                                           min_max_count)
+                                           min_max_count, context_splits)
 
     def __sample_loaders(self, fold_ind: Union[int, Tuple[int, int]] = 0) -> Tuple[DataLoader, DataLoader]:
         train_dataset, test_dataset = self._split_train_test(self._loader, fold_ind, pad=True)
         train_loader = DataLoader(train_dataset, self.config.batch_size(), shuffle=True)
         test_loader = DataLoader(test_dataset, self.config.batch_size())
         return train_loader, test_loader
-
-    # def __contextsplit_sample_loaders(self, depth: int = 0, random: bool = False) -> Tuple[DataLoader, DataLoader]:
-    #     train_dataset, test_dataset = self._context_split(self._loader, depth, random=random, pad=True)
-    #     train_loader = DataLoader(train_dataset, self.config.batch_size(), shuffle=True)
-    #     test_loader = DataLoader(test_dataset, self.config.batch_size())
-    #     return train_loader, test_loader
 
     def __train(self, train_loader, test_loaders, model, optimizer, loss_function, n_epochs, log_batches, batch_size):
         print("Start training")
@@ -111,20 +106,8 @@ class NNClassifier(BaseClassifier):
                 float(self.__run_classifier(train_loader, test_loader)),
                 fold_ind
             ))
+            print(scores[-1])
         print(scores)
         mean = float(np.mean([score.accuracy for score in scores]))
         std = float(np.std([score.accuracy for score in scores]))
         return mean, std, scores
-
-    # def contextsplit_validate(self) -> Tuple[float, float, List[float]]:
-    #     print("Begin contextsplit validation")
-    #     scores = []
-    #     for depth in range(self.config.contextsplit_depth()):
-    #         train_loader, test_loader = self.__contextsplit_sample_loaders(depth)
-    #         scores.append(float(self.__run_classifier(train_loader, test_loader)))
-    #     print(scores)
-    #     return float(np.mean(scores)), float(np.std(scores)), scores
-    #
-    # def random_contextsplit(self) -> float:
-    #     train_loader, test_loader = self.__contextsplit_sample_loaders(random=True)
-    #     return self.__run_classifier(train_loader, test_loader)

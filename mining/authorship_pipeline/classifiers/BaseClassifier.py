@@ -1,6 +1,6 @@
 from collections import namedtuple
 from math import ceil
-from typing import Tuple, Dict, Union
+from typing import Tuple, Dict, Union, List
 
 import numpy as np
 import pandas as pd
@@ -8,6 +8,7 @@ import pandas as pd
 from classifiers.config import Config
 from data_loading.PathMinerDataset import PathMinerDataset
 from data_loading.PathMinerLoader import PathMinerLoader
+from preprocessing.context_split import PickType, ContextSplit
 from util import ProcessedFolder
 
 ClassificationResult = namedtuple(
@@ -19,10 +20,11 @@ ClassificationResult = namedtuple(
 class BaseClassifier:
 
     def __init__(self, config: Config, project_folder: ProcessedFolder, change_entities: pd.Series,
-                 change_to_time_bucket: Dict, min_max_count: Tuple[int, int]):
+                 change_to_time_bucket: Dict, min_max_count: Tuple[int, int], context_splits: List[ContextSplit]):
         self.config = config
         self.__fix_random()
-        self._loader = PathMinerLoader(project_folder, change_entities, change_to_time_bucket, min_max_count)
+        self._loader = \
+            PathMinerLoader(project_folder, change_entities, change_to_time_bucket, min_max_count, context_splits)
         self.__indices_per_class, self._n_classes = self.__split_into_classes()
         self.update_chosen_classes()
 
@@ -53,10 +55,13 @@ class BaseClassifier:
             -> Tuple[PathMinerDataset, PathMinerDataset]:
 
         chosen_classes = self.__chosen_classes
-        if self.config.time_folds() is not None:
+        if self.config.mode() == 'time':
             train_fold, test_fold = fold_ind
             train_indices = self._loader.time_buckets() == train_fold
             test_indices = self._loader.time_buckets() == test_fold
+        elif self.config.mode() == 'context':
+            train_indices = self._loader.context_indices(fold_ind) == PickType.TRAIN
+            test_indices = self._loader.context_indices(fold_ind) == PickType.TEST
         else:
             test_size = self.config.test_size()
             if isinstance(test_size, int):

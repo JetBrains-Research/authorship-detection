@@ -11,14 +11,15 @@ from sklearn.metrics import accuracy_score
 from classifiers.BaseClassifier import BaseClassifier, ClassificationResult
 from classifiers.config import Config
 from data_loading.PathMinerDataset import PathMinerDataset
+from preprocessing.context_split import ContextSplit
 from util import ProcessedFolder
 
 
 class RFClassifier(BaseClassifier):
     def __init__(self, config: Config, project_folder: ProcessedFolder, change_entities: pd.Series,
-                 change_to_time_bucket: Dict, min_max_count: Tuple[int, int]):
+                 change_to_time_bucket: Dict, min_max_count: Tuple[int, int], context_splits: List[ContextSplit]):
         super(RFClassifier, self).__init__(config, project_folder, change_entities, change_to_time_bucket,
-                                           min_max_count)
+                                           min_max_count, context_splits)
         self.__feature_scores = None
 
     def __build_sparse_matrix(self, dataset: PathMinerDataset, features: List[str]) -> csc_matrix:
@@ -61,26 +62,6 @@ class RFClassifier(BaseClassifier):
         print(X_train.shape, y_train.shape, X_test.shape, y_test.shape)
         return X_train, X_test, y_train, y_test
 
-    # def __create_contextsplit_samples(self, depth: int = 0, random: bool = False):
-    #     train_dataset, test_dataset = self._context_split(self._loader, depth, random)
-    #     # scores = load_feature_scores(train_dataset, args.features, feature_counts, args.score_file, debug=debug)
-    #     # valid_features = []
-    #     # pref = 0
-    #     # for total_count, feature_count in zip(feature_counts, args.feature_counts):
-    #     #     valid_features.append(top_scores_inds(scores[pref:pref + total_count], feature_count))
-    #     #     pref += total_count
-    #
-    #     X_train = self.__build_sparse_matrix(train_dataset, self.config.features())
-    #     y_train = train_dataset.labels()
-    #     X_test = self.__build_sparse_matrix(test_dataset, self.config.features())
-    #     y_test = test_dataset.labels()
-    #     if self.config.feature_count() is not None:
-    #         X_train = self.__top_features(X_train, train_dataset.labels(), self.config.feature_count())
-    #         X_test = self.__top_features(X_test, test_dataset.labels(), self.config.feature_count())
-    #
-    #     print(X_train.shape, y_train.shape, X_test.shape, y_test.shape)
-    #     return X_train, X_test, y_train, y_test
-
     def run(self, fold_indices: Union[List[int], List[Tuple[int, int]]]) \
             -> Tuple[float, float, List[ClassificationResult]]:
         print("Begin cross validation")
@@ -91,22 +72,11 @@ class RFClassifier(BaseClassifier):
                 float(self.__run_classifier(X_train, X_test, y_train, y_test)),
                 fold_ind
             ))
+            print(scores[-1])
         print(scores)
         mean = float(np.mean([score.accuracy for score in scores]))
         std = float(np.std([score.accuracy for score in scores]))
         return mean, std, scores
-
-    # def contextsplit_validate(self) -> Tuple[float, float, List[float]]:
-    #     print("Begin cross validation")
-    #     scores = []
-    #     for depth in range(self.config.contextsplit_depth()):
-    #         X_train, X_test, y_train, y_test = self.__create_contextsplit_samples(depth)
-    #         scores.append(float(self.__run_classifier(X_train, X_test, y_train, y_test)))
-    #     print(scores)
-    #     return float(np.mean(scores)), float(np.std(scores)), scores
-    #
-    # def random_contextsplit(self) -> float:
-    #     return self.__run_classifier(*self.__create_contextsplit_samples(random=True))
 
     def __run_classifier(self, X_train, X_test, y_train, y_test, single=True) -> Union[float, List[float]]:
         params = self.config.params()

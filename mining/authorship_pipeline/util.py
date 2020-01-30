@@ -23,18 +23,22 @@ class ProcessedFolder:
         self.author_to_changes = os.path.join(self.generated_folder, "author_to_changes.pkl")
         self.unknown_entities = os.path.join(self.generated_folder, "unknown_entities.txt")
         self.readable_entities = os.path.join(self.generated_folder, "readable_entities.csv")
-        self.context_split = os.path.join(self.generated_folder, "context_split.pkl")
         self.file_changes = [os.path.join(folder, f) for f in os.listdir(folder) if f.startswith("file_changes")]
         self._time_buckets_split = "time_buckets_split_{}.pkl"
         self._time_buckets_range = "time_buckets_range_{}.csv"
+        self._context_split = "context_split_{}_{}_{}.pkl"
         self._n_tokens = None
         self._n_paths = None
 
-    def time_buckets_split(self, n_buckets) -> str:
+    def time_buckets_split(self, n_buckets: int) -> str:
         return os.path.join(self.generated_folder, self._time_buckets_split.format(n_buckets))
 
-    def time_buckets_range(self, n_buckets) -> str:
+    def time_buckets_range(self, n_buckets: int) -> str:
         return os.path.join(self.generated_folder, self._time_buckets_range.format(n_buckets))
+
+    def context_split(self, min_train: float, max_train: float, min_count: int):
+        return os.path.join(self.generated_folder,
+                            self._context_split.format(int(min_train * 100), int(max_train * 100), min_count))
 
     def n_tokens(self) -> int:
         if self._n_tokens is None:

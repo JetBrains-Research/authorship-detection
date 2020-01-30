@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 
 from data_loading.UtilityEntities import PathContext, Path, NodeType, PathContexts
+from preprocessing.context_split import ContextSplit, PickType
 from util import ProcessedFolder
 
 
@@ -11,14 +12,16 @@ from util import ProcessedFolder
 class PathMinerLoader:
 
     def __init__(self, project_folder: ProcessedFolder, change_entities: pd.Series, change_to_time_bucket: Dict,
-                 min_max_count: Tuple[int, int]):
+                 min_max_count: Tuple[int, int], context_splits: List[ContextSplit] = None):
         self._tokens = self._load_tokens(project_folder.tokens_file)
         self._node_types = self._load_node_types(project_folder.node_types_file)
         self._paths = self._load_paths(project_folder.path_ids_file)
-        self._labels, self._path_contexts, self._time_buckets = \
+        self._labels, self._path_contexts, self._time_buckets, self._context_indices = \
             self._load_path_contexts_files(project_folder.file_changes, change_entities, change_to_time_bucket,
-                                           min_max_count)
+                                           min_max_count, context_splits)
         self._n_classes = np.max(self._labels) + 1
+        self._context_depth = 0 if context_splits is None else len(context_splits)
+
         entities, counts = np.unique(self._labels, return_counts=True)
         ec = [(c, e) for e, c in zip(entities, counts)]
         for i, (c, e) in enumerate(sorted(ec)):
@@ -48,12 +51,14 @@ class PathMinerLoader:
 
     @staticmethod
     def _load_path_contexts_files(path_contexts_files: List[str], change_entities: pd.Series,
-                                  change_to_time_bucket: Dict, min_max_count: Tuple[int, int]) \
-            -> Tuple[np.ndarray, PathContexts, np.ndarray]:
+                                  change_to_time_bucket: Dict, min_max_count: Tuple[int, int],
+                                  context_splits: List[ContextSplit]) \
+            -> Tuple[np.ndarray, PathContexts, np.ndarray, List[np.ndarray]]:
 
         starts, paths, ends = [], [], []
         labels = []
         time_buckets = []
+        context_indices = [[] for _ in range(len(context_splits))]
         for path_contexts_file in path_contexts_files:
             contexts = pd.read_csv(path_contexts_file, sep=',',
                                    usecols=['changeId', 'pathsCountBefore', 'pathsCountAfter', 'pathsAfter'])
@@ -86,12 +91,21 @@ class PathMinerLoader:
                     lambda change_id: change_to_time_bucket[change_id]
                 ).values)
 
+            if context_splits is not None:
+                for i in range(len(context_splits)):
+                    context_indices[i].append(contexts['changeId'].map(
+                        lambda change_id: context_splits[i].change_to_pick_type[change_id]
+                        if change_id in context_splits[i].change_to_pick_type else PickType.IGNORED
+                    ))
+
         starts = np.concatenate(starts)
         paths = np.concatenate(paths)
         ends = np.concatenate(ends)
         labels = np.concatenate(labels)
         if change_to_time_bucket is not None:
             time_buckets = np.concatenate(time_buckets)
+        if context_splits is not None:
+            context_indices = [np.concatenate(c) for c in context_indices]
 
         entities, counts = np.unique(labels, return_counts=True)
         entity_to_count = {e: c for e, c in zip(entities, counts)}
@@ -104,8 +118,10 @@ class PathMinerLoader:
         labels = labels[indices]
         if change_to_time_bucket is not None:
             time_buckets = time_buckets[indices]
+        if context_splits is not None:
+            context_indices = [c[indices] for c in context_indices]
 
-        return labels, PathContexts(starts, paths, ends), time_buckets
+        return labels, PathContexts(starts, paths, ends), time_buckets, context_indices
 
     @staticmethod
     def _series_to_ndarray(series: pd.Series) -> np.ndarray:
@@ -132,5 +148,11 @@ class PathMinerLoader:
     def time_buckets(self):
         return self._time_buckets
 
+    def context_indices(self, depth):
+        return self._context_indices[depth]
+
     def n_classes(self) -> int:
         return self._n_classes
+
+    def context_depth(self) -> int:
+        return self._context_depth
