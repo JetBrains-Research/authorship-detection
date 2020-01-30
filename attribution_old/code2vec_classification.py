@@ -1,14 +1,15 @@
-import time
 import argparse
+import time
+
 import numpy as np
-from sklearn.metrics import recall_score, precision_score, accuracy_score
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from sklearn.metrics import accuracy_score
 from torch.utils.data import DataLoader
 
-from data_processing.PathMinerLoader import PathMinerLoader
 from data_processing.PathMinerDataset import PathMinerDataset
+from data_processing.PathMinerLoader import PathMinerLoader
 from model.ProjectClassifier import ProjectClassifier
 
 

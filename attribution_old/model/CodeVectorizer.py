@@ -1,6 +1,6 @@
 import torch
-from torch.nn import functional as F
 from torch import nn
+from torch.nn import functional as F
 
 
 # Implementation of code2vec's vectorization part in PyTorch.
