@@ -32,3 +32,6 @@ out/
 datasets/**
 processed/**/*.csv
 parsed/*
+attribution/gitminer/out_code/*
+attribution/gitminer/out/*
+attribution/gitminer/data/exploded/*
