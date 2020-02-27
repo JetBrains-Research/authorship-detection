@@ -1,0 +1,11 @@
+source_folder: "/home/egor/Work/authorship-detection/attribution/gitminer/out/gradle"
+classifier_type: "nn"
+mode: "time"
+time_folds: 10
+seed: 239
+epochs: 3
+batch_size: 256
+hidden_dim: 32
+learning_rate: 0.01
+min_count: 100
+log_batches: 20
