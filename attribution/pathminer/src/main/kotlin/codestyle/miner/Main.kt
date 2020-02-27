@@ -19,15 +19,14 @@ enum class Mode {
 }
 
 fun main(args: Array<String>) {
-//    if (args.size != 1) {
-//        throw IllegalArgumentException("Specify exactly one argument: type of extracted data `contexts` or `code`")
-//    }
-//    val mode = when (args[0]) {
-//        "contexts" -> Mode.ExtractContexts
-//        "code" -> Mode.ExtractCode
-//        else -> throw IllegalArgumentException("Mode should be either `contexts` or `code`, not ${args[0]}")
-//    }
-    val mode = Mode.ExtractCode
+    if (args.size != 1) {
+        throw IllegalArgumentException("Specify exactly one argument: type of extracted data `contexts` or `code`")
+    }
+    val mode = when (args[0]) {
+        "contexts" -> Mode.ExtractContexts
+        "code" -> Mode.ExtractCode
+        else -> throw IllegalArgumentException("Mode should be either `contexts` or `code`, not ${args[0]}")
+    }
     val repoNames = readRepoNames()
     repoNames.forEach {
         println("Processing repository $it")
@@ -143,7 +142,7 @@ fun processRepositoryData(repoName: String, mode: Mode) {
         Mode.ExtractCode -> {
             val codeStorage = CodeStorage(
                     "../gitminer/data/exploded/$repoName/blobs",
-                    "../gitminer/out_code/$repoName"
+                    "../gitminer/out/$repoName/out_code"
             )
             val infos = processEntries(entries, codeStorage, methodMatcher) { changeEntry, storage, matcher ->
                 processChangeToCode(changeEntry, storage, matcher)
