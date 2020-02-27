@@ -22,10 +22,10 @@ class PathMinerLoader:
         self._n_classes = np.max(self._labels) + 1
         self._context_depth = 0 if context_splits is None else len(context_splits)
 
-        entities, counts = np.unique(self._labels, return_counts=True)
-        ec = [(c, e) for e, c in zip(entities, counts)]
-        for i, (c, e) in enumerate(sorted(ec)):
-            print(f'{i}: {e} -> {c}')
+        # entities, counts = np.unique(self._labels, return_counts=True)
+        # ec = [(c, e) for e, c in zip(entities, counts)]
+        # for i, (c, e) in enumerate(sorted(ec)):
+        #     print(f'{i}: {e} -> {c}')
 
     def _load_tokens(self, tokens_file: str) -> np.ndarray:
         return self._series_to_ndarray(
@@ -58,7 +58,11 @@ class PathMinerLoader:
         starts, paths, ends = [], [], []
         labels = []
         time_buckets = []
-        context_indices = [[] for _ in range(len(context_splits))]
+        if context_splits is not None:
+            context_indices = [[] for _ in range(len(context_splits))]
+        else:
+            context_indices = None
+
         for path_contexts_file in path_contexts_files:
             contexts = pd.read_csv(path_contexts_file, sep=',',
                                    usecols=['changeId', 'pathsCountBefore', 'pathsCountAfter', 'pathsAfter'])

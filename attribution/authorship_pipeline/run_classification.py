@@ -3,6 +3,7 @@ import os
 
 import yaml
 
+from classifiers.CaliskanClassifier import CaliskanClassifier
 from classifiers.NNClassifier import NNClassifier
 from classifiers.RFClassifier import RFClassifier
 from classifiers.config import Config
@@ -39,17 +40,25 @@ def main(args):
     else:
         context_splits = None
 
-    classifier = NNClassifier(config, project_folder, change_entities, change_to_time_bucket,
-                              config.min_max_count(), context_splits) if config.classifier_type() == 'nn' \
-        else RFClassifier(config, project_folder, change_entities, change_to_time_bucket, config.min_max_count(),
-                          context_splits)
+    if config.classifier_type() == 'nn':
+        classifier = NNClassifier(config, project_folder, change_entities, change_to_time_bucket,
+                                  config.min_max_count(), context_splits)
+    elif config.classifier_type() == 'rf':
+        classifier = RFClassifier(config, project_folder, change_entities, change_to_time_bucket,
+                                  config.min_max_count(), context_splits)
+    elif config.classifier_type() == 'caliskan':
+        classifier = CaliskanClassifier(config, project_folder, change_entities, change_to_time_bucket,
+                                        config.min_max_count(), context_splits)
+    else:
+        raise ValueError('Classifier type should be set in config')
 
     if config.mode() == 'time':
         fold_indices = [(i, j) for i in range(config.time_folds()) for j in range(i + 1, config.time_folds())]
     elif config.mode() == 'context':
-        fold_indices = [i for i in range(classifier._loader.context_depth())]
+        fold_indices = [i for i in range(len(context_splits))]
     else:
         fold_indices = classifier.cross_validation_folds()
+
     mean, std, scores = classifier.run(fold_indices)
     print(f'{mean:.3f}+-{std:.3f}')
     yaml.dump({

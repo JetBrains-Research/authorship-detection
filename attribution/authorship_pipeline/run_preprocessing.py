@@ -2,6 +2,7 @@ from argparse import ArgumentParser
 
 import numpy as np
 
+from preprocessing.compute_caliskan_features import compute_caliskan_features
 from preprocessing.compute_occurrences import compute_occurrences
 from preprocessing.context_split import context_split
 from preprocessing.merge_aliases_bipartite import merge_aliases_bipartite
@@ -20,6 +21,7 @@ def process_folder(project_folder: ProcessedFolder, n_time_buckets: int, min_con
     time_split(project_folder, n_time_buckets, uniform_distribution=True)
     context_split(project_folder, min_train=min_context_train, max_train=max_context_train, min_count=min_count,
                   max_count=max_count)
+    compute_caliskan_features(project_folder)
 
 
 def run_preprocessing(n_time_buckets: int, min_context_train: float, max_context_train: float, min_count: int,
@@ -44,6 +46,7 @@ if __name__ == '__main__':
     parser.add_argument("--min_context_train", type=float, default=0.7)
     parser.add_argument("--max_context_train", type=float, default=0.8)
     parser.add_argument("--min_count", type=int, default=100)
+    parser.add_argument("--max_count", type=int, default=None)
     parser.add_argument("--random_seed", type=int, default=239)
     parser.add_argument("--projects_file", type=str, default="../projects.txt")
     parser.add_argument("--project_folder", type=str)
