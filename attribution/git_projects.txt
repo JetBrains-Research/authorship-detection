@@ -1,1 +1,5 @@
 https://github.com/JetBrains/intellij-community.git
+https://github.com/gradle/gradle.git
+https://github.com/neo4j/neo4j.git
+https://github.com/osmandapp/Osmand.git
+https://github.com/mulesoft/mule.git
