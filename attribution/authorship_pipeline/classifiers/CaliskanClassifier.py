@@ -4,9 +4,8 @@ import numpy as np
 import pandas as pd
 from scipy.sparse import csc_matrix
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score
 
-from classifiers.BaseClassifier import ClassificationResult
+from classifiers.BaseClassifier import ClassificationResult, compute_classification_result
 from classifiers.config import Config
 from preprocessing.compute_caliskan_features import compute_caliskan_features
 from preprocessing.context_split import ContextSplit, PickType
@@ -67,17 +66,15 @@ class CaliskanClassifier():
         scores = []
         for fold_ind in fold_indices:
             X_train, X_test, y_train, y_test = self.__split_data(fold_ind)
-            scores.append(ClassificationResult(
-                float(self.__run_classifier(X_train, X_test, y_train, y_test)),
-                fold_ind
-            ))
+            scores.append(self.__run_classifier(X_train, X_test, y_train, y_test, fold_ind))
             print(scores[-1])
         print(scores)
         mean = float(np.mean([score.accuracy for score in scores]))
         std = float(np.std([score.accuracy for score in scores]))
         return mean, std, scores
 
-    def __run_classifier(self, X_train, X_test, y_train, y_test, single=True) -> Union[float, List[float]]:
+    def __run_classifier(self, X_train, X_test, y_train, y_test, fold_ind, single=True) -> \
+            Union[ClassificationResult, List[ClassificationResult]]:
         params = self.config.params()
         model = RandomForestClassifier(**params)
         print("Fitting classifier")
@@ -85,6 +82,6 @@ class CaliskanClassifier():
         print("Making predictions")
         if single:
             predictions = model.predict(X_test)
-            return accuracy_score(y_test, predictions)
+            return compute_classification_result(y_test, predictions, fold_ind)
         else:
-            return [accuracy_score(y, model.predict(X)) for X, y in zip(X_test, y_test)]
+            return [compute_classification_result(y, model.predict(X), fold_ind) for X, y in zip(X_test, y_test)]

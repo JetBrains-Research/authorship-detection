@@ -6,9 +6,8 @@ import pandas as pd
 from scipy.sparse import csc_matrix
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_selection import mutual_info_classif
-from sklearn.metrics import accuracy_score
 
-from classifiers.BaseClassifier import BaseClassifier, ClassificationResult
+from classifiers.BaseClassifier import BaseClassifier, ClassificationResult, compute_classification_result
 from classifiers.config import Config
 from data_loading.PathMinerDataset import PathMinerDataset
 from preprocessing.context_split import ContextSplit
@@ -68,17 +67,16 @@ class RFClassifier(BaseClassifier):
         scores = []
         for fold_ind in fold_indices:
             X_train, X_test, y_train, y_test = self.__create_samples(fold_ind)
-            scores.append(ClassificationResult(
-                float(self.__run_classifier(X_train, X_test, y_train, y_test)),
-                fold_ind
-            ))
+            scores.append(self.__run_classifier(X_train, X_test, y_train, y_test, fold_ind))
             print(scores[-1])
         print(scores)
         mean = float(np.mean([score.accuracy for score in scores]))
         std = float(np.std([score.accuracy for score in scores]))
         return mean, std, scores
 
-    def __run_classifier(self, X_train, X_test, y_train, y_test, single=True) -> Union[float, List[float]]:
+    def __run_classifier(self, X_train, X_test, y_train, y_test, fold_ind, single=True) -> \
+            Union[ClassificationResult, List[ClassificationResult]]:
+
         params = self.config.params()
         model = RandomForestClassifier(**params)
         print("Fitting classifier")
@@ -86,9 +84,9 @@ class RFClassifier(BaseClassifier):
         print("Making predictions")
         if single:
             predictions = model.predict(X_test)
-            return accuracy_score(y_test, predictions)
+            return compute_classification_result(y_test, predictions, fold_ind)
         else:
-            return [accuracy_score(y, model.predict(X)) for X, y in zip(X_test, y_test)]
+            return [compute_classification_result(y, model.predict(X), fold_ind) for X, y in zip(X_test, y_test)]
 
     def __top_features(self, feature_matrix: Union[np.ndarray, csc_matrix], labels: np.ndarray,
                        n_count: int) -> Union[np.ndarray, csc_matrix]:

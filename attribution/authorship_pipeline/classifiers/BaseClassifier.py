@@ -13,8 +13,37 @@ from util import ProcessedFolder
 
 ClassificationResult = namedtuple(
     'ClassificationResult',
-    ('accuracy', 'fold_ind')
+    ('accuracy', 'macro_precision', 'macro_recall', 'fold_ind')
 )
+
+
+def compute_classification_result(
+        true_labels: List, predicted_labels: List, fold_ind: Union[int, Tuple[int, int]]
+) -> ClassificationResult:
+    true_labels = np.array(true_labels, dtype=np.int)
+    predicted_labels = np.array(predicted_labels, dtype=np.int)
+    labels, counts = np.unique(true_labels, return_counts=True)
+    tp, fp, tn, fn = 0, 0, 0, 0
+    precisions = []
+    recalls = []
+    for label, count in zip(labels, counts):
+        true_positive = np.sum(np.logical_and(true_labels == label, predicted_labels == label))
+        false_positive = np.sum(np.logical_and(true_labels != label, predicted_labels == label))
+        true_negative = np.sum(np.logical_and(true_labels != label, predicted_labels != label))
+        false_negative = np.sum(np.logical_and(true_labels == label, predicted_labels != label))
+        tp += true_positive
+        fp += false_positive
+        tn += true_negative
+        fn += false_negative
+        precisions.append(tp / (tp + fp) if (tp + fp > 0) else 0.)
+        recalls.append(tp / (tp + fn))
+
+    return ClassificationResult(
+        accuracy=np.mean(true_labels == predicted_labels),
+        macro_precision=np.mean(precisions),
+        macro_recall=np.mean(recalls),
+        fold_ind=fold_ind
+    )
 
 
 class BaseClassifier:

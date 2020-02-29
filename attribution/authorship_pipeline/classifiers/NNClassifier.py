@@ -4,11 +4,10 @@ from typing import Tuple, List, Union, Dict
 import numpy as np
 import pandas as pd
 import torch
-from sklearn.metrics import accuracy_score
 from torch import optim, nn
 from torch.utils.data import DataLoader
 
-from classifiers.BaseClassifier import BaseClassifier, ClassificationResult
+from classifiers.BaseClassifier import BaseClassifier, ClassificationResult, compute_classification_result
 from classifiers.config import Config
 from model.ProjectClassifier import ProjectClassifier
 from preprocessing.context_split import ContextSplit
@@ -27,9 +26,10 @@ class NNClassifier(BaseClassifier):
         test_loader = DataLoader(test_dataset, self.config.batch_size())
         return train_loader, test_loader
 
-    def __train(self, train_loader, test_loaders, model, optimizer, loss_function, n_epochs, log_batches, batch_size):
+    def __train(self, train_loader, test_loaders, model, optimizer, loss_function, n_epochs, log_batches, batch_size,
+                fold_ind):
         print("Start training")
-        accuracies = [0.] * len(test_loaders)
+        accuracies = [ClassificationResult(0, 0, 0, 0) for _ in range(len(test_loaders))]
         for epoch in range(n_epochs):
             print("Epoch #{}".format(epoch + 1))
             current_loss = 0
@@ -56,10 +56,16 @@ class NNClassifier(BaseClassifier):
                     predictions = np.zeros(total)
                     targets = np.zeros(total)
                     cur = 0
+                    test_loss = 0.
+                    n_batches = 0
                     for sample in test_loader:
                         starts, paths, ends, labels = sample['starts'], sample['paths'], sample['ends'], sample[
                             'labels']
                         batched_predictions = model((starts, paths, ends))
+
+                        test_loss += loss_function(batched_predictions, labels)
+                        n_batches += 1
+
                         batched_predictions = np.argmax(batched_predictions, axis=1)
                         batched_targets = labels
                         predictions[cur:cur + len(batched_predictions)] = batched_predictions
@@ -68,14 +74,19 @@ class NNClassifier(BaseClassifier):
 
                     # print(predictions)
                     # print(targets)
-                    accuracy = accuracy_score(targets, predictions)
-                    print(f"accuracy: {accuracy}")
-                    accuracies[i] = max(accuracies[i], accuracy)
+                    print("average loss {}".format(test_loss / n_batches))
+                    classification_result = compute_classification_result(targets, predictions, fold_ind)
+                    print(f"classification results: {classification_result}")
+                    accuracies[i] = max(accuracies[i], classification_result, key=lambda cl: cl.accuracy)
+                    values, counts = np.unique(predictions, return_counts=True)
+                    vc = [(c, v) for v, c in zip(values, counts)]
+                    for cnt, val in sorted(vc):
+                        print(cnt, val)
 
         print("Training completed")
         return accuracies
 
-    def __run_classifier(self, train_loader: DataLoader, test_loaders: Union[DataLoader, List[DataLoader]]) \
+    def __run_classifier(self, train_loader: DataLoader, test_loaders: Union[DataLoader, List[DataLoader]], fold_ind) \
             -> Union[float, List[float]]:
         model = ProjectClassifier(self._loader.tokens().size,
                                   self._loader.paths().size,
@@ -90,9 +101,10 @@ class NNClassifier(BaseClassifier):
         accuracies = self.__train(train_loader, test_loaders, model, optimizer, loss_function,
                                   n_epochs=self.config.epochs(),
                                   log_batches=self.config.log_batches(),
-                                  batch_size=self.config.batch_size())
+                                  batch_size=self.config.batch_size(),
+                                  fold_ind=fold_ind)
         if len(test_loaders) == 1:
-            return max(accuracies)
+            return max(accuracies, key=lambda cl: cl.accuracy)
         else:
             return accuracies
 
@@ -102,10 +114,7 @@ class NNClassifier(BaseClassifier):
         scores = []
         for fold_ind in fold_indices:
             train_loader, test_loader = self.__sample_loaders(fold_ind)
-            scores.append(ClassificationResult(
-                float(self.__run_classifier(train_loader, test_loader)),
-                fold_ind
-            ))
+            scores.append(self.__run_classifier(train_loader, test_loader, fold_ind))
             print(scores[-1])
         print(scores)
         mean = float(np.mean([score.accuracy for score in scores]))

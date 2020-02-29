@@ -22,10 +22,10 @@ class PathMinerLoader:
         self._n_classes = np.max(self._labels) + 1
         self._context_depth = 0 if context_splits is None else len(context_splits)
 
-        # entities, counts = np.unique(self._labels, return_counts=True)
-        # ec = [(c, e) for e, c in zip(entities, counts)]
-        # for i, (c, e) in enumerate(sorted(ec)):
-        #     print(f'{i}: {e} -> {c}')
+        entities, counts = np.unique(self._labels, return_counts=True)
+        ec = [(c, e) for e, c in zip(entities, counts)]
+        for i, (c, e) in enumerate(sorted(ec)):
+            print(f'{i}: {e} -> {c} | {c / len(self._labels):.4f}')
 
     def _load_tokens(self, tokens_file: str) -> np.ndarray:
         return self._series_to_ndarray(

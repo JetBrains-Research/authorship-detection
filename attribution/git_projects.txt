@@ -1,1 +1,1 @@
-https://github.com/gradle/gradle.git
+https://github.com/JetBrains/intellij-community.git

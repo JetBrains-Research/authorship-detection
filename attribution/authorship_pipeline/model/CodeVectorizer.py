@@ -11,6 +11,7 @@ class CodeVectorizer(nn.Module):
         super(CodeVectorizer, self).__init__()
         self.tokens_embed = nn.Embedding(n_tokens, dim)
         self.paths_embed = nn.Embedding(n_paths, dim)
+        self.dropout = nn.Dropout(p=0.5)
         self.transform = nn.Sequential(nn.Linear(3 * dim, dim), nn.Tanh())
         self.attention = nn.Linear(dim, 1)
 
@@ -24,6 +25,7 @@ class CodeVectorizer(nn.Module):
 
         # (batch_size, max_contexts, 3 * dim)
         concatenated_contexts = torch.cat((starts, paths, ends), dim=2)
+        concatenated_contexts = self.dropout(concatenated_contexts)
         # (batch_size, max_contexts, dim)
         transformed_contexts = self.transform(concatenated_contexts)
         # (batch_size, max_contexts, 1)
