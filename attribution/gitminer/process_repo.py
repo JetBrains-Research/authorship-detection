@@ -3,6 +3,7 @@ import time
 
 import pandas as pd
 from git import Repo
+from joblib import Parallel, delayed, cpu_count
 from pandas import DataFrame
 
 from path_settings import PathSettings
@@ -88,10 +89,30 @@ class RepositoryProcessor:
     def process_commit(self, commit):
         parents = commit.parents
         if len(parents) != 1:
-            return []
+            return commit, []
 
         parent = parents[0]
-        return self.get_changes(commit, parent)
+        return commit, self.get_changes(commit, parent)
+
+    @staticmethod
+    def split_into_chunks(commits, chunk_size):
+        return [commits[i:i + chunk_size] for i in range(0, len(commits), chunk_size)]
+
+    def process_chunk(self, ind, n_jobs, processed_commits, repo):
+        commits = [
+            commit
+            for i, commit in enumerate(repo.iter_commits())
+            if str(commit) not in processed_commits and i % n_jobs == ind
+        ]
+        print("Thread {}: processing chunk of {} commits".format(ind, len(commits)))
+        processed_batches = []
+        for i, commit in enumerate(commits):
+            processed_batches.append(self.process_commit(commit))
+            if (i + 1) % 1000 == 0:
+                print("Thread {}: processed {} of {} commits".format(ind, i + 1, len(commits)))
+        processed_commits = set(str(commit) for commit, _ in processed_batches)
+        change_infos = [change_info for _, batch in processed_batches for change_info in batch]
+        return processed_commits, change_infos
 
     def explode_repo(self):
         repo = Repo(self.path_settings.repo_path)
@@ -129,49 +150,29 @@ class RepositoryProcessor:
 
         limit = 1000000
 
-        commits_to_process = min(limit, total_commits - len(processed_commits))
-        print("{} commits in the repository. Processing {}".format(total_commits, commits_to_process))
+        n_commits_to_process = min(limit, total_commits - len(processed_commits))
+        print("{} commits in the repository. Processing {}".format(total_commits, n_commits_to_process))
 
         processed_count = 0
 
         prev_time = time.time()
-        change_infos_chunk = []
-        for c in repo.iter_commits():
-            if str(c) in processed_commits:
-                continue
+        n_jobs = cpu_count() - 2
+        with Parallel(n_jobs=n_jobs) as pool:
+            processed_chunks = pool(
+                delayed(self.process_chunk)(ind, n_jobs, processed_commits, repo) for ind in range(n_jobs)
+            )
+        cur_time = time.time()
+        print("Finished processing in {} sec".format(cur_time - prev_time))
 
-            change_infos_chunk += self.process_commit(c)
-            processed_count += 1
-            processed_commits.add(str(c))
+        for chunk in processed_chunks:
+            processed_commits_chunk, change_infos_chunk = chunk
+            processed_commits.update(processed_commits_chunk)
+            processed_count += len(processed_commits_chunk)
 
-            if processed_count % 5000 == 0:
-                print("Processed {} of {} commits\n".format(processed_count, commits_to_process))
-
-                cur_time = time.time()
-                print("Last 5000 processed in {} seconds".format(time.time() - prev_time))
-                prev_time = cur_time
-
-                new_data = False
-
-                if df is None and len(change_infos_chunk) > 0:
-                    df = DataFrame.from_records(change_infos_chunk)
-                elif len(change_infos_chunk) > 0:
-                    df = df.append(DataFrame.from_records(change_infos_chunk))
-                    new_data = True
-
-                if (df is not None) and new_data:
-                    df.to_csv(self.path_settings.incomplete_repo_data_file, index=False)
-
-                change_infos_chunk = []
-                print(df.info(memory_usage='deep', verbose=False))
-            if processed_count >= limit:
-                break
-
-        if len(change_infos_chunk) > 0:
-            if df is not None:
-                df = df.append(DataFrame.from_records(change_infos_chunk))
-            else:
+            if df is None and len(change_infos_chunk) > 0:
                 df = DataFrame.from_records(change_infos_chunk)
+            elif len(change_infos_chunk) > 0:
+                df = df.append(DataFrame.from_records(change_infos_chunk))
 
         if df is not None:
             print(df.info(memory_usage='deep', verbose=False))
