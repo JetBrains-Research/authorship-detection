@@ -27,17 +27,12 @@ fun ChangeEntry.toCsvLine(): String {
 
 const val CHANGE_ENTRY_CSV_HEADER = "id,commitId,authorName,authorEmail,committerName,committerEmail,authorTime,committerTime,changeType,oldContentId,newContentId,oldPath,newPath"
 
-data class MethodChangeContextInfo(val methodIdBefore: MethodId?, val methodIdAfter: MethodId?,
-                                   val pathsCountBefore: Int, val pathsCountAfter: Int,
-                                   val pathsBefore: String, val pathsAfter: String)
+data class MethodChangeInfo(val methodIdBefore: MethodId?, val methodIdAfter: MethodId?,
+                            val pathsCountBefore: Int?, val pathsCountAfter: Int?,
+                            val pathsBefore: String?, val pathsAfter: String?)
 
-data class FileChangeContextInfo(val changeEntryId: Int, val authorName: String, val authorEmail: String,
-                                 val methodChanges: List<MethodChangeContextInfo>)
-
-data class MethodChangeCodeInfo(val methodIdBefore: MethodId?, val methodIdAfter: MethodId?)
-
-data class FileChangeCodeInfo(val changeEntryId: Int, val authorName: String, val authorEmail: String,
-                              val methodChanges: List<MethodChangeCodeInfo>)
+data class FileChangeInfo(val changeEntryId: Int, val authorName: String, val authorEmail: String,
+                          val methodChanges: List<MethodChangeInfo>)
 
 enum class ClassType { TOP_LEVEL, INNER, STATIC_NESTED, LOCAL, ANONYMOUS }
 
@@ -60,18 +55,16 @@ class MethodMapping(val before: MethodInfo?, val after: MethodInfo?) {
 class DataDumper(val repoName: String) {
     val dirName = "../gitminer/out/$repoName"
 
-    fun dumpData(entries: List<ChangeEntry>, changes: List<FileChangeContextInfo>, pathStorage: PathStorage) {
+    fun dumpData(entries: List<ChangeEntry>, changes: List<FileChangeInfo>, pathStorage: PathStorage?, codeStorage: CodeStorage?) {
         saveChangeEntries("change_metadata.csv", entries)
         saveFileChanges(changes)
-        dumpPathStorage(pathStorage)
+        if (pathStorage != null) {
+            dumpPathStorage(pathStorage)
+        }
+        codeStorage?.dump()
     }
 
-    fun dumpData(entries: List<ChangeEntry>, changes: List<FileChangeCodeInfo>, codeStorage: CodeStorage) {
-        saveChangeEntries("change_metadata.csv", entries)
-        codeStorage.dump()
-    }
-
-    fun saveFileChanges(changes: List<FileChangeContextInfo>) {
+    fun saveFileChanges(changes: List<FileChangeInfo>) {
         val chunkSize = 10_000
         val chunkedChanges = changes.chunked(chunkSize)
         val methodIdStorage: IncrementalIdStorage<MethodId> = IncrementalIdStorage()
@@ -134,7 +127,7 @@ class DataDumper(val repoName: String) {
         dumpPathIdStorage(storage.pathIds, "path_ids.csv")
     }
 
-    fun saveFileChangesChunk(filename: String, fileChanges: List<FileChangeContextInfo>, methodIdStorage: IncrementalIdStorage<MethodId>) {
+    fun saveFileChangesChunk(filename: String, fileChanges: List<FileChangeInfo>, methodIdStorage: IncrementalIdStorage<MethodId>) {
         val header = "changeId,authorName,authorEmail,methodBeforeId,methodAfterId,pathsCountBefore,pathsCountAfter,pathsBefore,pathsAfter"
 
         val dir = File(dirName)

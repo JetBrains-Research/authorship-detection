@@ -15,7 +15,8 @@ fun readRepoNames(): List<String> {
 
 enum class Mode {
     ExtractCode,
-    ExtractContexts
+    ExtractContexts,
+    ExtractAll
 }
 
 fun main(args: Array<String>) {
@@ -25,6 +26,7 @@ fun main(args: Array<String>) {
     val mode = when (args[0]) {
         "contexts" -> Mode.ExtractContexts
         "code" -> Mode.ExtractCode
+        "all" -> Mode.ExtractAll
         else -> throw IllegalArgumentException("Mode should be either `contexts` or `code`, not ${args[0]}")
     }
     val repoNames = readRepoNames()
@@ -76,10 +78,9 @@ private fun parseChangeEntry(id: Int, csvLine: String, csvSettings: CsvSettings)
 }
 
 
-fun <StorageType : Any, InfoType> processEntries(
-        entries: List<ChangeEntry>, storage: StorageType, methodMatcher: MethodMatcher,
-        processEntry: (ChangeEntry, StorageType, MethodMatcher) -> InfoType
-): MutableList<InfoType> {
+fun processEntries(
+        entries: List<ChangeEntry>, pathStorage: PathStorage?, codeStorage: CodeStorage?, methodMatcher: MethodMatcher
+): MutableList<FileChangeInfo> {
 
     val nCores = Runtime.getRuntime().availableProcessors()
     val nchunks = nCores - 1
@@ -87,18 +88,18 @@ fun <StorageType : Any, InfoType> processEntries(
     println("have $nCores cores, running $nchunks threads processing $chunkSize entries each")
 
     val threads: MutableCollection<Thread> = HashSet()
-    val infos: MutableList<InfoType> = ArrayList()
+    val infos: MutableList<FileChangeInfo> = ArrayList()
 
     entries.chunked(chunkSize).forEachIndexed { threadNumber, chunk ->
         val currentThread = thread {
             var processed = 0
             chunk.forEach {
-                val info = processEntry(it, storage, methodMatcher)
+                val info = processChange(it, pathStorage, codeStorage, methodMatcher)
                 processed += 1
                 if (processed % 100 == 0) {
                     println("Thread $threadNumber: processed $processed of ${chunk.size} entries")
                 }
-                synchronized(storage) {
+                synchronized(infos) {
                     infos.add(info)
                 }
             }
@@ -131,25 +132,21 @@ fun processRepositoryData(repoName: String, mode: Mode) {
 
     val methodMatcher = MethodMatcher(repoName)
     val dumper = DataDumper(repoName)
-    when (mode) {
-        Mode.ExtractContexts -> {
-            val pathStorage = PathStorage()
-            val infos = processEntries(entries, pathStorage, methodMatcher) { changeEntry, storage, matcher ->
-                processChangeToContext(changeEntry, storage, matcher)
-            }
-            dumper.dumpData(entries, infos, pathStorage)
-        }
-        Mode.ExtractCode -> {
-            val codeStorage = CodeStorage(
-                    "../gitminer/data/exploded/$repoName/blobs",
-                    "../gitminer/out/$repoName/out_code"
-            )
-            val infos = processEntries(entries, codeStorage, methodMatcher) { changeEntry, storage, matcher ->
-                processChangeToCode(changeEntry, storage, matcher)
-            }
-            dumper.dumpData(entries, infos, codeStorage)
-        }
+    val pathStorage = if (mode == Mode.ExtractContexts || mode == Mode.ExtractAll) {
+        PathStorage()
+    } else {
+        null
     }
+    val codeStorage = if (mode == Mode.ExtractCode || mode == Mode.ExtractAll) {
+        CodeStorage(
+                "../gitminer/data/exploded/$repoName/blobs",
+                "../gitminer/out/$repoName/out_code"
+        )
+    } else {
+        null
+    }
+    val infos = processEntries(entries, pathStorage, codeStorage, methodMatcher)
+    dumper.dumpData(entries, infos, pathStorage, codeStorage)
 
     val elapsed = System.currentTimeMillis() - startTime
     println("Processed ${entries.size} entries in ${elapsed / 1000} seconds (${1000.0 * entries.size / elapsed} entries/s)")
@@ -161,57 +158,48 @@ fun MethodMatcher.getMappingContext(entry: ChangeEntry): MappingContext {
 
 fun PathContext.toShortString(): String = "${this.startToken} ${this.pathId} ${this.endToken}"
 
-fun processChangeToContext(entry: ChangeEntry, pathStorage: PathStorage, methodMatcher: MethodMatcher): FileChangeContextInfo {
+fun processChange(entry: ChangeEntry, pathStorage: PathStorage?, codeStorage: CodeStorage?, methodMatcher: MethodMatcher): FileChangeInfo {
     // retrieve the method mappings between the two versions of the file
     val mappingContext = methodMatcher.getMappingContext(entry)
 
     // extract the changed methods
     val changedMappings = mappingContext.mappings.filter { it.isChanged }
 
-    fun getMethodPaths(node: ITree?, context: TreeContext?): Collection<PathContext> {
+    fun getMethodPaths(node: ITree?, context: TreeContext?, pathStorage: PathStorage): Collection<PathContext> {
         if (node == null || context == null) return emptyList()
         return retrievePaths(context, node, pathStorage, 10, 3)
     }
 
-    val methodChangeInfos: MutableList<MethodChangeContextInfo> = ArrayList()
+    val methodChangeInfos: MutableList<MethodChangeInfo> = ArrayList()
 
     changedMappings.forEach {
         val treeBefore = it.before?.node
         val treeAfter = it.after?.node
 
-        val pathsBefore = getMethodPaths(treeBefore, mappingContext.treeContextBefore)
-        val pathsAfter = getMethodPaths(treeAfter, mappingContext.treeContextAfter)
-        val methodChangeData = MethodChangeContextInfo(it.before?.id, it.after?.id,
-                pathsBefore.size,
-                pathsAfter.size,
-                pathsBefore.map { path -> path.toShortString() }.joinToString(separator = ";"),
-                pathsAfter.map { path -> path.toShortString() }.joinToString(separator = ";"))
+        val pathsBefore = if (pathStorage != null) {
+            getMethodPaths(treeBefore, mappingContext.treeContextBefore, pathStorage)
+        } else {
+            null
+        }
+        val pathsAfter = if (pathStorage != null) {
+            getMethodPaths(treeAfter, mappingContext.treeContextAfter, pathStorage)
+        } else {
+            null
+        }
+        val methodChangeData = MethodChangeInfo(
+                it.before?.id, it.after?.id,
+                pathsBefore?.size,
+                pathsAfter?.size,
+                pathsBefore?.joinToString(separator = ";") { path -> path.toShortString() },
+                pathsAfter?.joinToString(separator = ";") { path -> path.toShortString() }
+        )
+        codeStorage?.store(treeBefore, treeAfter, entry)
         methodChangeInfos.add(methodChangeData)
     }
 
-    return FileChangeContextInfo(entry.id, entry.authorName, entry.authorEmail, methodChangeInfos)
+    return FileChangeInfo(entry.id, entry.authorName, entry.authorEmail, methodChangeInfos)
 }
 
-fun processChangeToCode(entry: ChangeEntry, codeStorage: CodeStorage, methodMatcher: MethodMatcher): FileChangeCodeInfo {
-    // retrieve the method mappings between the two versions of the file
-    val mappingContext = methodMatcher.getMappingContext(entry)
-
-    // extract the changed methods
-    val changedMappings = mappingContext.mappings.filter { it.isChanged }
-
-    val methodChangeInfos: MutableList<MethodChangeCodeInfo> = ArrayList()
-
-    changedMappings.forEach {
-        val treeBefore = it.before?.node
-        val treeAfter = it.after?.node
-        val methodChangeData = MethodChangeCodeInfo(it.before?.id, it.after?.id)
-        codeStorage.store(treeBefore, treeAfter, entry)
-        methodChangeInfos.add(methodChangeData)
-    }
-
-    return FileChangeCodeInfo(entry.id, entry.authorName, entry.authorEmail, methodChangeInfos)
-}
-
-fun saveInfosToJson(filename: String, infos: List<FileChangeContextInfo>) {
+fun saveInfosToJson(filename: String, infos: List<FileChangeInfo>) {
     GsonBuilder().setPrettyPrinting().create().toJson(infos, FileWriter(filename))
 }
