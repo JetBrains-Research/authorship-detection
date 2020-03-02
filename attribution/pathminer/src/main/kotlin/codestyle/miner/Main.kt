@@ -96,7 +96,7 @@ fun processEntries(
             chunk.forEach {
                 val info = processChange(it, pathStorage, codeStorage, methodMatcher)
                 processed += 1
-                if (processed % 100 == 0) {
+                if (processed % 1000 == 0) {
                     println("Thread $threadNumber: processed $processed of ${chunk.size} entries")
                 }
                 synchronized(infos) {
@@ -108,10 +108,11 @@ fun processEntries(
         threads.add(currentThread)
     }
 
-    threads.forEach {
-        it.join()
+    threads.forEachIndexed { ind, thread ->
+        thread.join()
+        println("Joined ${ind}")
     }
-
+    println("All threads finished successfully")
     return infos
 }
 

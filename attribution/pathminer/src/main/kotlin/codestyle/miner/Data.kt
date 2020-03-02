@@ -56,6 +56,7 @@ class DataDumper(val repoName: String) {
     val dirName = "../gitminer/out/$repoName"
 
     fun dumpData(entries: List<ChangeEntry>, changes: List<FileChangeInfo>, pathStorage: PathStorage?, codeStorage: CodeStorage?) {
+        println("Dumping data")
         saveChangeEntries("change_metadata.csv", entries)
         saveFileChanges(changes)
         if (pathStorage != null) {
@@ -122,6 +123,7 @@ class DataDumper(val repoName: String) {
     }
 
     fun dumpPathStorage(storage: PathStorage) {
+        println("Dumping path storage")
         dumpStringIdStorage(storage.tokenIds, "tokens.csv")
         dumpNodeTypeStorage(storage.nodeTypeIds, "node_types.csv")
         dumpPathIdStorage(storage.pathIds, "path_ids.csv")

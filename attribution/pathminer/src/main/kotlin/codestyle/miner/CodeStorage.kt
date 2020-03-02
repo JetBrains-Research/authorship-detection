@@ -60,6 +60,7 @@ class CodeStorage(private val loadPrefix: String, private val savePrefix: String
     }
 
     fun dump() {
+        println("Dumping code storage")
         codeChanges.valueMap.forEach { change, id ->
             try {
                 val methodText = loadMethod(change.loadPath, change.startPos, change.endPos)
