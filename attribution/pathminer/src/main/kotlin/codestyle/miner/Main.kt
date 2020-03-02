@@ -93,15 +93,18 @@ fun processEntries(
     entries.chunked(chunkSize).forEachIndexed { threadNumber, chunk ->
         val currentThread = thread {
             var processed = 0
+            val localInfos: MutableList<FileChangeInfo> = ArrayList()
             chunk.forEach {
                 val info = processChange(it, pathStorage, codeStorage, methodMatcher)
                 processed += 1
                 if (processed % 1000 == 0) {
                     println("Thread $threadNumber: processed $processed of ${chunk.size} entries")
                 }
-                synchronized(infos) {
-                    infos.add(info)
-                }
+                localInfos.add(info)
+
+            }
+            synchronized(infos) {
+                infos.addAll(localInfos)
             }
             println("Thread $threadNumber done")
         }
