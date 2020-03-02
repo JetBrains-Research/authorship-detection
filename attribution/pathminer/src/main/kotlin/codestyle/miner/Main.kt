@@ -87,7 +87,7 @@ fun processEntries(
     val chunkSize = (entries.size / nchunks) + 1
     println("have $nCores cores, running $nchunks threads processing $chunkSize entries each")
 
-    val threads: MutableCollection<Thread> = HashSet()
+    val threads: MutableList<Thread> = ArrayList()
     val infos: MutableList<FileChangeInfo> = ArrayList()
 
     entries.chunked(chunkSize).forEachIndexed { threadNumber, chunk ->
