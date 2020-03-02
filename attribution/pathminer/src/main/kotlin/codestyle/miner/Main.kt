@@ -90,19 +90,16 @@ fun processEntries(
     val threads: MutableList<Thread> = ArrayList()
     val infos: MutableList<FileChangeInfo> = ArrayList()
 
-    entries.chunked(chunkSize).get(31).chunked(chunkSize / nchunks).forEachIndexed { threadNumber, chunk ->
+    entries.chunked(chunkSize).forEachIndexed { threadNumber, chunk ->
         val currentThread = thread {
             var processed = 0
             val localInfos: MutableList<FileChangeInfo> = ArrayList()
             chunk.forEach {
-                if (threadNumber == 37) {
-                    println("Processing ${it.oldContentId?.id} ${it.newContentId?.id} ${it.oldPath} ${it.newPath} ${it.commitId}")
+                if (it.commitId == "8d2056de208e1d0e0a83fb61d2a2fa91ebd4101c") {
+                    return@forEach
                 }
                 val info = processChange(it, pathStorage, codeStorage, methodMatcher)
                 processed += 1
-                if (threadNumber == 37) {
-                    println("Thread $threadNumber: processed $processed of ${chunk.size} entries")
-                }
                 if (processed % 1000 == 0) {
                     println("Thread $threadNumber: processed $processed of ${chunk.size} entries")
                 }
