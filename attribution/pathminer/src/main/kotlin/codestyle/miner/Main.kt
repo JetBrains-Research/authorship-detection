@@ -95,6 +95,7 @@ fun processEntries(
             var processed = 0
             val localInfos: MutableList<FileChangeInfo> = ArrayList()
             chunk.forEach {
+                // TODO: exclude commits automatically
                 if (it.commitId == "8d2056de208e1d0e0a83fb61d2a2fa91ebd4101c") {
                     return@forEach
                 }
