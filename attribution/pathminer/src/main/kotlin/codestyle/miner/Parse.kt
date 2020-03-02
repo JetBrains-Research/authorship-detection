@@ -11,7 +11,7 @@ fun readAndParseBlob(blobId: BlobId?, repoName: String): TreeContext? {
     if (blobId == null) return null
     val file = "../gitminer/data/exploded/$repoName/blobs/${blobId.id}"
     val length = File(file).readLines().size
-    if (length > 3000) {
+    if (length > 1500) {
         throw TooLongException(file)
     }
     return parse(file)
