@@ -112,6 +112,7 @@ fun processEntries(
     }
 
     threads.forEachIndexed { ind, thread ->
+        println("Joining ${ind}: ${thread.state}")
         thread.join()
         println("Joined ${ind}")
     }
