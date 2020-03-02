@@ -90,7 +90,7 @@ fun processEntries(
     val threads: MutableList<Thread> = ArrayList()
     val infos: MutableList<FileChangeInfo> = ArrayList()
 
-    entries.chunked(chunkSize).forEachIndexed { threadNumber, chunk ->
+    entries.chunked(chunkSize).get(0).chunked(chunkSize / nchunks).forEachIndexed { threadNumber, chunk ->
         val currentThread = thread {
             var processed = 0
             val localInfos: MutableList<FileChangeInfo> = ArrayList()
