@@ -3,10 +3,17 @@ package codestyle.miner
 import com.github.gumtreediff.gen.jdt.JdtTreeGenerator
 import com.github.gumtreediff.tree.ITree
 import com.github.gumtreediff.tree.TreeContext
+import java.io.File
+
+class TooLongException(file: String) : Exception(file)
 
 fun readAndParseBlob(blobId: BlobId?, repoName: String): TreeContext? {
     if (blobId == null) return null
     val file = "../gitminer/data/exploded/$repoName/blobs/${blobId.id}"
+    val length = File(file).readLines().size
+    if (length > 3000) {
+        throw TooLongException(file)
+    }
     return parse(file)
 }
 

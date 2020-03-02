@@ -59,6 +59,10 @@ class MethodMatcher(val repoName: String) {
     }
 
     fun getMappingContext(blobIdBefore: BlobId?, blobIdAfter: BlobId?): MappingContext {
-        return getMappingContext(readAndParseBlob(blobIdBefore, repoName), readAndParseBlob(blobIdAfter, repoName))
+        return try {
+            getMappingContext(readAndParseBlob(blobIdBefore, repoName), readAndParseBlob(blobIdAfter, repoName))
+        } catch (e: TooLongException) {
+            getMappingContext(blobIdBefore = null, blobIdAfter = null)
+        }
     }
 }
