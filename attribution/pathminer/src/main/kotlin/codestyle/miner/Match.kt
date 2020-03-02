@@ -62,7 +62,7 @@ class MethodMatcher(val repoName: String) {
         return try {
             getMappingContext(readAndParseBlob(blobIdBefore, repoName), readAndParseBlob(blobIdAfter, repoName))
         } catch (e: TooLongException) {
-            println("Skipping ${e.message}")
+//            println("Skipping ${e.message}")
             getMappingContext(blobIdBefore = null, blobIdAfter = null)
         }
     }
