@@ -20,6 +20,8 @@ def output_filename(input_file):
 
 
 def output_file(input_file):
+    if not os.path.exists(os.path.dirname(input_file)):
+        os.makedirs(os.path.dirname(input_file))
     return open(output_filename(input_file), 'w')
 
 
