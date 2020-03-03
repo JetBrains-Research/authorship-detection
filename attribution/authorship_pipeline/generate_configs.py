@@ -27,8 +27,10 @@ configs_by_classifier = {
                 'random_state': 239
             }
         }
-        for n_estimators in [100, 300, 500]
-        for max_features in ['log2', 'sqrt']
+        # for n_estimators in [100, 300, 500]
+        for n_estimators in [300]
+        # for max_features in ['log2', 'sqrt']
+        for max_features in ['log2']
     ],
     'nn': [
         {
@@ -38,8 +40,10 @@ configs_by_classifier = {
             'batch_size': 1024,
             'epochs': 20
         }
-        for lr in [0.01, 0.005]
-        for hidden_dim in [16, 42, 64]
+        # for lr in [0.01, 0.005]
+        for lr in [0.01]
+        # for hidden_dim in [16, 42, 64]
+        for hidden_dim in [32, 64]
     ],
     'caliskan': [
         {
@@ -53,9 +57,12 @@ configs_by_classifier = {
                 'random_state': 239
             }
         }
-        for feature_count in [2500, 5000, 10000]
-        for n_estimators in [100, 300, 500]
-        for max_features in ['log2', 'sqrt']
+        # for feature_count in [2500, 5000, 10000]
+        for feature_count in [10000]
+        # for n_estimators in [100, 300, 500]
+        for n_estimators in [300]
+        # for max_features in ['log2', 'sqrt']
+        for max_features in ['log2']
     ]
 }
 
