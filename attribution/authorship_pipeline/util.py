@@ -25,7 +25,7 @@ class ProcessedFolder:
         self.readable_entities = os.path.join(self.generated_folder, "readable_entities.csv")
         self.file_changes = [os.path.join(folder, f) for f in os.listdir(folder) if f.startswith("file_changes")]
 
-        self.code_folder = os.path.join(self.folder, 'code')
+        self.code_folder = os.path.join(self.folder, 'out_code')
 
         def list_folder(code_folder):
             return sorted([os.path.join(code_folder, f) for f in os.listdir(code_folder)])

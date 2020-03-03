@@ -263,13 +263,13 @@ def context_split(processed_folder: ProcessedFolder, min_count: int = 100, max_c
                                min_count <= author_occurrences[change_entities[change_id]] <= max_count
                                )
 
-    project_root.print_tree(n_tabs=0, assert_rule=lambda n: n.depth > 3)
+    # project_root.print_tree(n_tabs=0, assert_rule=lambda n: n.depth > 3)
 
     depth = _max_depth(project_root)
 
     nodes_at_depth = [[] for _ in range(depth + 1)]
     _get_all_nodes_at_depth(project_root, nodes_at_depth)
-    print(depth)
+    print(f"Depth: {depth}")
 
     min_depth, max_depth = _detect_min_max_depth(project_root, nodes_at_depth, max_train)
 

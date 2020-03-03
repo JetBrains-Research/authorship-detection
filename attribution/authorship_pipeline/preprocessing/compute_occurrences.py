@@ -40,6 +40,9 @@ def compute_occurrences(processed_folder: ProcessedFolder) -> Tuple[Counter, Cou
             author_to_changes[author].append(total_count)
             total_count += 1
 
+    for i, (author, count) in enumerate(author_occurrences.most_common()):
+        print(f"#{i + 1} entity: {author} -> {count}")
+
     pickle.dump(author_occurrences, open(processed_folder.author_occurrences, 'wb'))
     pickle.dump(change_occurrences, open(processed_folder.change_occurrences, 'wb'))
     pickle.dump(author_to_changes, open(processed_folder.author_to_changes, 'wb'))

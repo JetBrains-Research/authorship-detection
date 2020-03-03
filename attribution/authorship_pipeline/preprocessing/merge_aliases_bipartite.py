@@ -10,11 +10,12 @@ from util import ProcessedFolder
 
 
 class BipartiteEntityMerger:
-    def __init__(self):
+    def __init__(self, interactive=False):
         self.pairs = set()
         self.entity_dict = {}
         self.reverse_dict = {}
         self.entity_count = 0
+        self.interactive = interactive
 
     def add_entity(self, name: str, email: str):
         self.pairs.add((name, email))
@@ -35,10 +36,16 @@ class BipartiteEntityMerger:
             print(e, cnt)
         print()
 
-        # banned_names = [n_count.most_common()[0][0]]
-        # banned_emails = [e_count.most_common()[0][0]]
         banned_names = []
         banned_emails = []
+        if self.interactive:
+            n_names = int(input('How many names to skip?\n'))
+            n_emails = int(input('How many emails to skip?\n'))
+            if n_names > 0:
+                banned_names = [name for name, _ in n_count.most_common(n_names)]
+            if n_emails > 0:
+                banned_emails = [email for email, _ in e_count.most_common(n_emails)]
+
         print(banned_names, banned_emails)
         print()
 
@@ -120,13 +127,13 @@ class BipartiteEntityMerger:
                 ))
 
 
-def merge_aliases_bipartite(processed_folder: ProcessedFolder) -> dict:
+def merge_aliases_bipartite(processed_folder: ProcessedFolder, interactive: bool = False) -> dict:
     if os.path.exists(processed_folder.entity_dict):
         print("Loading merged entities")
         return pickle.load(open(processed_folder.entity_dict, 'rb'))
 
     print("Merging entities by bipartite strategy...")
-    bipartite_merger = BipartiteEntityMerger()
+    bipartite_merger = BipartiteEntityMerger(interactive)
     change_metadata = pd.read_csv(
         processed_folder.change_metadata_file,
         index_col="id",
@@ -145,5 +152,6 @@ def merge_aliases_bipartite(processed_folder: ProcessedFolder) -> dict:
 if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument("--data_folder", type=str, required=True)
+    parser.add_argument("--interactive", action='store_true')
     args = parser.parse_args()
-    merge_aliases_bipartite(ProcessedFolder(args.data_folder))
+    merge_aliases_bipartite(ProcessedFolder(args.data_folder), args.interactive)
