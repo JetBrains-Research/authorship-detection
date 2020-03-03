@@ -1,0 +1,12 @@
+batch_size: 1024
+classifier_type: nn
+epochs: 20
+hidden_dim: 64
+learning_rate: 0.01
+log_batches: 10
+max_count: 102000
+min_count: 10000
+mode: time
+seed: 239
+source_folder: ../gitminer/out/intellij-community
+time_folds: 10

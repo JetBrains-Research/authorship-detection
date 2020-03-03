@@ -1,0 +1,11 @@
+batch_size: 1024
+classifier_type: nn
+epochs: 20
+hidden_dim: 16
+learning_rate: 0.005
+log_batches: 10
+max_count: 100000
+min_count: 10000
+mode: context
+seed: 239
+source_folder: ../gitminer/out/mule
