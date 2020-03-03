@@ -10,7 +10,6 @@ from typing import List
 
 import javalang
 import numpy as np
-from javalang.parser import JavaSyntaxError
 from joblib import Parallel, delayed
 from scipy.sparse import csc_matrix
 from tqdm import tqdm
@@ -87,8 +86,7 @@ def calculate_features(path: str) -> Union[Dict, None]:
         features.update(JavaKeywords.calculate(tokens))
 
         return features
-    except JavaSyntaxError:
-        print(f'Failed for {path}')
+    except Exception as e:
         return None
 
 
