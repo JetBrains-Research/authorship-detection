@@ -2,11 +2,13 @@ import os
 
 import yaml
 
-min_counts = {
-    'ecs-logging-java': 1
-}
-max_counts = {
-    'ecs-logging-java': 1000
+lim_counts = {
+    'ecs-logging-java': [(1, 1000)],
+    'intellij-community': [(2000, 10_000), (10_000, 102_000)],
+    'gradle': [(1000, 10_000), (10_000, 100_000)],
+    'mule': [(1000, 10_000), (10_000, 100_000)],
+    'Osmand': [(1000, 20_000)],
+    'neo4j': [(1000, 10_000), (10_000, 100_000)]
 }
 
 configs_by_classifier = {
@@ -68,28 +70,29 @@ def generate_configs(p):
 
     for classifier_type in classifier_types:
         for mode in modes:
-            output_path = os.path.join(output_dir, classifier_type)
-            if not os.path.exists(output_path):
-                os.makedirs(output_path)
+            for min_count, max_count in lim_counts[p]:
+                output_path = os.path.join(output_dir, classifier_type)
+                if not os.path.exists(output_path):
+                    os.makedirs(output_path)
 
-            basic_config = {
-                'source_folder': path,
-                'seed': seed,
-                'classifier_type': classifier_type,
-                'mode': mode,
-                'min_count': min_counts[p],
-                'max_count': max_counts[p]
-            }
-            if mode == 'time':
-                basic_config['time_folds'] = 10
+                basic_config = {
+                    'source_folder': path,
+                    'seed': seed,
+                    'classifier_type': classifier_type,
+                    'mode': mode,
+                    'min_count': min_count,
+                    'max_count': max_count
+                }
+                if mode == 'time':
+                    basic_config['time_folds'] = 10
 
-            for i, classifier_config in enumerate(configs_by_classifier[classifier_type]):
-                final_config = {**basic_config, **classifier_config}
-                yaml.dump(
-                    final_config,
-                    open(os.path.join(output_path, f'config_{i + 1}.yaml'), 'w'),
-                    default_flow_style=False
-                )
+                for i, classifier_config in enumerate(configs_by_classifier[classifier_type]):
+                    final_config = {**basic_config, **classifier_config}
+                    yaml.dump(
+                        final_config,
+                        open(os.path.join(output_path, f'{mode}_{min_count}_{max_count}_{i + 1}.yaml'), 'w'),
+                        default_flow_style=False
+                    )
 
 
 projects_file = os.path.join("..", "projects.txt")
