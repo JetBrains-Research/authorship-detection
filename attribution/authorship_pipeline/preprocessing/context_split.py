@@ -7,6 +7,7 @@ from typing import Dict, Tuple, Callable, List
 
 import numpy as np
 import pandas as pd
+from joblib import Parallel, delayed
 from tqdm import tqdm
 
 from preprocessing.compute_occurrences import compute_occurrences
@@ -280,9 +281,14 @@ def context_split(processed_folder: ProcessedFolder, min_count: int = 100, max_c
     resulting_split = [ContextSplit(d, {}) for d in range(min_depth, max_depth + 1)]
     success_size = 0
     author_success = 0
-    for author in tqdm(authors):
-        author_split, success, size = _find_split(author, change_entities, min_depth, max_depth, min_train, max_train,
-                                                  nodes_at_depth, iters=10)
+    with Parallel(n_jobs=-1) as pool:
+        split_result = pool(
+            delayed(_find_split)(author, change_entities, min_depth, max_depth, min_train, max_train,
+                                 nodes_at_depth, iters=10)
+            for author in tqdm(authors)
+        )
+
+    for author_split, success, size in split_result:
         if success:
             success_size += size
             author_success += 1
