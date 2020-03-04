@@ -5,8 +5,10 @@ from argparse import ArgumentParser
 from typing import Tuple
 
 import numpy as np
+from joblib import Parallel, delayed
 from scipy.sparse import csc_matrix
 from sklearn.feature_selection import mutual_info_classif
+from tqdm import tqdm
 
 from caliskan.features import calculate_features_for_files, build_dataset
 from preprocessing.resolve_entities import resolve_entities
@@ -62,7 +64,15 @@ def compute_caliskan_features(processed_folder: ProcessedFolder) -> Tuple[Calisk
     )
     print("Computing mutual info")
     print(feature_values.shape)
-    mutual_info = mutual_info_classif(dataset.feature_values, dataset.authors, random_state=0)
+
+    with Parallel(n_jobs=-1) as pool:
+        part_size = 1000
+        m = dataset.feature_values.shape[1]
+        mutual_info_parts = pool(
+            delayed(mutual_info_classif)(dataset.feature_values[:, i:i + part_size], dataset.authors, random_state=0)
+            for i in tqdm(range(0, m, part_size))
+        )
+    mutual_info = np.concatenate(mutual_info_parts)
     mutual_info /= np.max(mutual_info)
 
     pickle.dump(dataset, open(processed_folder.caliskan_dataset, 'wb'))
