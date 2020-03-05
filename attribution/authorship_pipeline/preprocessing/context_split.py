@@ -241,11 +241,35 @@ def _find_split(entity: int, change_entities: pd.Series, min_depth: int, max_dep
     return resulting_split, True, cur_size
 
 
+def _filter_authors(splits: List[ContextSplit], min_count: int, max_count: int, author_occurrences: Counter,
+                    change_occurrences: Counter, change_entities: pd.Series):
+    print("Filtering authors based on counts")
+    valid_authors = [(author, count) for author, count in author_occurrences.most_common() if
+                     min_count <= count <= max_count]
+    print(f"Got {len(valid_authors)} valid authors")
+    for author, count in valid_authors:
+        print(f"Author: {author} -> {count}")
+    taken_changes = 0
+    taken_items = 0
+    for i in range(len(splits)):
+        for change_id in splits[i].change_to_pick_type:
+            if not (min_count <= author_occurrences[change_entities[change_id]] <= max_count):
+                splits[i].change_to_pick_type[change_id] = PickType.IGNORED
+                taken_changes += 1
+                taken_items += change_occurrences[change_id]
+    print(f"{taken_changes} changes left, total of {taken_items} points")
+
+
 def context_split(processed_folder: ProcessedFolder, min_count: int = 100, max_count: int = 10 ** 9,
                   min_train: float = 0.7, max_train: float = 0.8) -> List[ContextSplit]:
-    if os.path.exists(processed_folder.context_split(min_train, max_train, min_count)):
+    author_occurrences, change_occurrences, author_to_changes, total_count = compute_occurrences(processed_folder)
+    change_entities = resolve_entities(processed_folder)
+
+    if os.path.exists(processed_folder.context_split(min_train, max_train)):
         print("Loading context-split data")
-        return pickle.load(open(processed_folder.context_split(min_train, max_train, min_count), 'rb'))
+        resulting_split = pickle.load(open(processed_folder.context_split(min_train, max_train), 'rb'))
+        _filter_authors(resulting_split, min_count, max_count, author_occurrences, change_occurrences, change_entities)
+        return resulting_split
 
     print("Splitting changes by context")
     change_metadata = pd.read_csv(
@@ -255,16 +279,9 @@ def context_split(processed_folder: ProcessedFolder, min_count: int = 100, max_c
         squeeze=True
     )
 
-    author_occurrences, change_occurrences, author_to_changes, total_count = compute_occurrences(processed_folder)
-    change_entities = resolve_entities(processed_folder)
-
-    project_root = _build_tree(change_metadata, change_entities, change_occurrences,
-                               lambda change_id:
-                               change_occurrences[change_id] > 0 and
-                               min_count <= author_occurrences[change_entities[change_id]] <= max_count
-                               )
-
-    # project_root.print_tree(n_tabs=0, assert_rule=lambda n: n.depth > 3)
+    project_root = _build_tree(
+        change_metadata, change_entities, change_occurrences, lambda change_id: change_occurrences[change_id] > 0
+    )
 
     depth = _max_depth(project_root)
 
@@ -276,7 +293,7 @@ def context_split(processed_folder: ProcessedFolder, min_count: int = 100, max_c
 
     print(f'Trying to find splits for depth from {min_depth} to {max_depth}')
 
-    authors = {author for author, count in author_occurrences.items() if count >= min_count}
+    authors = {author for author, count in author_occurrences.items()}
 
     resulting_split = [ContextSplit(d, {}) for d in range(min_depth, max_depth + 1)]
     success_size = 0
@@ -295,15 +312,14 @@ def context_split(processed_folder: ProcessedFolder, min_count: int = 100, max_c
             _merge_splits(resulting_split, author_split)
 
     print(f"Kept {success_size / project_root.count * 100:.2f}% of changes by {author_success}/{len(authors)} authors")
-    pickle.dump(resulting_split, open(processed_folder.context_split(min_train, max_train, min_count), 'wb'))
+    pickle.dump(resulting_split, open(processed_folder.context_split(min_train, max_train), 'wb'))
     print("Buckets saved on disk")
+    _filter_authors(resulting_split, min_count, max_count, author_occurrences, change_occurrences, change_entities)
     return resulting_split
 
 
 if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument("--data_folder", type=str, required=True)
-    # parser.add_argument("--n_time_buckets", type=int, required=True)
-    # parser.add_argument("--uniform_distr", action='store_true')
     args = parser.parse_args()
     print(context_split(ProcessedFolder(args.data_folder)))

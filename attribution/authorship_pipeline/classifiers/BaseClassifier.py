@@ -1,6 +1,6 @@
 from collections import namedtuple
 from math import ceil
-from typing import Tuple, Dict, Union, List
+from typing import Tuple, Dict, Union, List, Counter
 
 import numpy as np
 import pandas as pd
@@ -49,11 +49,13 @@ def compute_classification_result(
 class BaseClassifier:
 
     def __init__(self, config: Config, project_folder: ProcessedFolder, change_entities: pd.Series,
-                 change_to_time_bucket: Dict, min_max_count: Tuple[int, int], context_splits: List[ContextSplit]):
+                 change_to_time_bucket: Dict, min_max_count: Tuple[int, int], author_occurrences: Counter,
+                 context_splits: List[ContextSplit]):
         self.config = config
         self.__fix_random()
-        self._loader = \
-            PathMinerLoader(project_folder, change_entities, change_to_time_bucket, min_max_count, context_splits)
+        self._loader = PathMinerLoader(
+            project_folder, change_entities, change_to_time_bucket, min_max_count, author_occurrences, context_splits
+        )
         self.__indices_per_class, self._n_classes = self.__split_into_classes()
         self.update_chosen_classes()
 

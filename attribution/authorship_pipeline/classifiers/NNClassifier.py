@@ -1,5 +1,5 @@
 import time
-from typing import Tuple, List, Union, Dict
+from typing import Tuple, List, Union, Dict, Counter
 
 import numpy as np
 import pandas as pd
@@ -16,9 +16,10 @@ from util import ProcessedFolder
 
 class NNClassifier(BaseClassifier):
     def __init__(self, config: Config, project_folder: ProcessedFolder, change_entities: pd.Series,
-                 change_to_time_bucket: Dict, min_max_count: Tuple[int, int], context_splits: List[ContextSplit]):
+                 change_to_time_bucket: Dict, min_max_count: Tuple[int, int], author_occurrences: Counter,
+                 context_splits: List[ContextSplit]):
         super(NNClassifier, self).__init__(config, project_folder, change_entities, change_to_time_bucket,
-                                           min_max_count, context_splits)
+                                           min_max_count, author_occurrences, context_splits)
 
     def __sample_loaders(self, fold_ind: Union[int, Tuple[int, int]] = 0) -> Tuple[DataLoader, DataLoader]:
         train_dataset, test_dataset = self._split_train_test(self._loader, fold_ind, pad=True)

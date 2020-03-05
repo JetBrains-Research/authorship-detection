@@ -7,6 +7,7 @@ from classifiers.CaliskanClassifier import CaliskanClassifier
 from classifiers.NNClassifier import NNClassifier
 from classifiers.RFClassifier import RFClassifier
 from classifiers.config import Config
+from preprocessing.compute_occurrences import compute_occurrences
 from preprocessing.context_split import context_split
 from preprocessing.resolve_entities import resolve_entities
 from preprocessing.time_split import time_split
@@ -33,6 +34,7 @@ def main(args):
     config = Config.fromyaml(args.config_file)
     project_folder = ProcessedFolder(config.source_folder())
     change_entities = resolve_entities(project_folder)
+    author_occurrences, _, _, _ = compute_occurrences(project_folder)
     if config.mode() == 'time':
         change_to_time_bucket = time_split(project_folder, config.time_folds(), uniform_distribution=True)
     else:
@@ -44,10 +46,10 @@ def main(args):
 
     if config.classifier_type() == 'nn':
         classifier = NNClassifier(config, project_folder, change_entities, change_to_time_bucket,
-                                  config.min_max_count(), context_splits)
+                                  config.min_max_count(), author_occurrences, context_splits)
     elif config.classifier_type() == 'rf':
         classifier = RFClassifier(config, project_folder, change_entities, change_to_time_bucket,
-                                  config.min_max_count(), context_splits)
+                                  config.min_max_count(), author_occurrences, context_splits)
     elif config.classifier_type() == 'caliskan':
         classifier = CaliskanClassifier(config, project_folder, change_entities, change_to_time_bucket,
                                         config.min_max_count(), context_splits)

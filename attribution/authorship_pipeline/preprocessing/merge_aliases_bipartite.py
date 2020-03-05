@@ -25,7 +25,8 @@ class BipartiteEntityMerger:
         e_count = Counter()
 
         for n, e in self.pairs:
-            n_count[n] += 1
+            if n != 'unknown':
+                n_count[n] += 1
             e_count[e] += 1
 
         for n, cnt in n_count.most_common(10):
@@ -36,7 +37,7 @@ class BipartiteEntityMerger:
             print(e, cnt)
         print()
 
-        banned_names = []
+        banned_names = ['unknown']
         banned_emails = []
         if self.interactive:
             n_names = int(input('How many names to skip?\n'))

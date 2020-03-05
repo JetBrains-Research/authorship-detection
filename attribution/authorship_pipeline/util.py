@@ -41,7 +41,7 @@ class ProcessedFolder:
 
         self._time_buckets_split = "time_buckets_split_{}.pkl"
         self._time_buckets_range = "time_buckets_range_{}.csv"
-        self._context_split = "context_split_{}_{}_{}.pkl"
+        self._context_split = "context_split_{}_{}.pkl"
         self._n_tokens = None
         self._n_paths = None
 
@@ -51,9 +51,9 @@ class ProcessedFolder:
     def time_buckets_range(self, n_buckets: int) -> str:
         return os.path.join(self.generated_folder, self._time_buckets_range.format(n_buckets))
 
-    def context_split(self, min_train: float, max_train: float, min_count: int):
+    def context_split(self, min_train: float, max_train: float):
         return os.path.join(self.generated_folder,
-                            self._context_split.format(int(min_train * 100), int(max_train * 100), min_count))
+                            self._context_split.format(int(min_train * 100), int(max_train * 100)))
 
     def n_tokens(self) -> int:
         if self._n_tokens is None:

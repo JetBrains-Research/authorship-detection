@@ -1,5 +1,5 @@
 import os
-from typing import List, Tuple, Union, Dict
+from typing import List, Tuple, Union, Dict, Counter
 
 import numpy as np
 import pandas as pd
@@ -16,9 +16,10 @@ from util import ProcessedFolder
 
 class RFClassifier(BaseClassifier):
     def __init__(self, config: Config, project_folder: ProcessedFolder, change_entities: pd.Series,
-                 change_to_time_bucket: Dict, min_max_count: Tuple[int, int], context_splits: List[ContextSplit]):
+                 change_to_time_bucket: Dict, min_max_count: Tuple[int, int], author_occurrences: Counter,
+                 context_splits: List[ContextSplit]):
         super(RFClassifier, self).__init__(config, project_folder, change_entities, change_to_time_bucket,
-                                           min_max_count, context_splits)
+                                           min_max_count, author_occurrences, context_splits)
         self.__feature_scores = None
 
     def __build_sparse_matrix(self, dataset: PathMinerDataset, features: List[str]) -> csc_matrix:

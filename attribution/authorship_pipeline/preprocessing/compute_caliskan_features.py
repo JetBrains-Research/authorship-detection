@@ -2,7 +2,7 @@ import os
 import pathlib
 import pickle
 from argparse import ArgumentParser
-from typing import Tuple
+from typing import Tuple, Counter
 
 import numpy as np
 from joblib import Parallel, delayed
@@ -11,18 +11,20 @@ from sklearn.feature_selection import mutual_info_classif
 from tqdm import tqdm
 
 from caliskan.features import calculate_features_for_files, build_dataset
+from preprocessing.compute_occurrences import compute_occurrences
 from preprocessing.resolve_entities import resolve_entities
 from util import ProcessedFolder
 
 
 class CaliskanDataset:
     def __init__(self, feature_values: csc_matrix, feature_names: np.ndarray, files: np.ndarray, change_ids: np.ndarray,
-                 authors: np.ndarray):
+                 authors: np.ndarray, author_occurrences: Counter):
         self.feature_values = feature_values
         self.feature_names = np.array(feature_names)
         self.files = files
         self.change_ids = change_ids
         self.authors = authors
+        self.author_occurrences = author_occurrences
 
     def limit_features(self, mutual_information: np.ndarray, n_features: int):
         indices = np.argsort(mutual_information)[-n_features:]
@@ -30,13 +32,16 @@ class CaliskanDataset:
         self.feature_names = self.feature_names[indices]
 
     def filter_authors(self, min_max_count: Tuple[int, int]):
-        author, count = np.unique(self.authors, return_counts=True)
-        author_count = {a: c for a, c in zip(author, count)}
-        indices = [i for i, a in enumerate(self.authors) if min_max_count[0] <= author_count[a] <= min_max_count[1]]
+        indices = [i for i, a in enumerate(self.authors) if
+                   min_max_count[0] <= self.author_occurrences[a] <= min_max_count[1]]
         self.feature_values = self.feature_values[indices, :]
         self.files = self.files[indices]
         self.change_ids = self.change_ids[indices]
         self.authors = self.authors[indices]
+        authors, counts = np.unique(self.authors, return_counts=True)
+        ec = [(c, e) for e, c in zip(authors, counts)]
+        for i, (c, e) in enumerate(sorted(ec)):
+            print(f'{i}: {e} -> {c} | {c / len(self.change_ids):.4f}')
 
 
 def compute_caliskan_features(processed_folder: ProcessedFolder) -> Tuple[CaliskanDataset, np.ndarray]:
@@ -55,12 +60,14 @@ def compute_caliskan_features(processed_folder: ProcessedFolder) -> Tuple[Calisk
     print("Building dataset")
     feature_values, feature_names = build_dataset(features)
     change_entities = resolve_entities(processed_folder)
+    author_occurrences, _, _, _ = compute_occurrences(processed_folder)
     dataset = CaliskanDataset(
         feature_values,
         np.array(feature_names),
         np.array(files),
         np.array(list(map(lambda path: int(pathlib.Path(path).name.split('_')[0]), files))),
-        np.array(list(map(lambda path: change_entities[int(pathlib.Path(path).name.split('_')[0])], files)))
+        np.array(list(map(lambda path: change_entities[int(pathlib.Path(path).name.split('_')[0])], files))),
+        author_occurrences
     )
     print("Computing mutual info")
     print(feature_values.shape)

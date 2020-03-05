@@ -1,4 +1,4 @@
-from typing import Tuple, List, Dict
+from typing import Tuple, List, Dict, Counter
 
 import numpy as np
 import pandas as pd
@@ -12,13 +12,14 @@ from util import ProcessedFolder
 class PathMinerLoader:
 
     def __init__(self, project_folder: ProcessedFolder, change_entities: pd.Series, change_to_time_bucket: Dict,
-                 min_max_count: Tuple[int, int], context_splits: List[ContextSplit] = None):
+                 min_max_count: Tuple[int, int], author_occurrences: Counter,
+                 context_splits: List[ContextSplit] = None):
         self._tokens = self._load_tokens(project_folder.tokens_file)
         self._node_types = self._load_node_types(project_folder.node_types_file)
         self._paths = self._load_paths(project_folder.path_ids_file)
         self._labels, self._path_contexts, self._time_buckets, self._context_indices = \
             self._load_path_contexts_files(project_folder.file_changes, change_entities, change_to_time_bucket,
-                                           min_max_count, context_splits)
+                                           min_max_count, context_splits, author_occurrences)
         self._n_classes = np.max(self._labels) + 1
         self._context_depth = 0 if context_splits is None else len(context_splits)
 
@@ -52,7 +53,7 @@ class PathMinerLoader:
     @staticmethod
     def _load_path_contexts_files(path_contexts_files: List[str], change_entities: pd.Series,
                                   change_to_time_bucket: Dict, min_max_count: Tuple[int, int],
-                                  context_splits: List[ContextSplit]) \
+                                  context_splits: List[ContextSplit], author_occurrences: Counter) \
             -> Tuple[np.ndarray, PathContexts, np.ndarray, List[np.ndarray]]:
 
         starts, paths, ends = [], [], []
@@ -111,10 +112,7 @@ class PathMinerLoader:
         if context_splits is not None:
             context_indices = [np.concatenate(c) for c in context_indices]
 
-        entities, counts = np.unique(labels, return_counts=True)
-        entity_to_count = {e: c for e, c in zip(entities, counts)}
-
-        label_counts = np.array([entity_to_count[label] for label in labels])
+        label_counts = np.array([author_occurrences[label] for label in labels])
         indices = np.logical_and(min_max_count[0] <= label_counts, label_counts <= min_max_count[1])
         starts = starts[indices]
         paths = paths[indices]
