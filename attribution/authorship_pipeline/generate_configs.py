@@ -14,7 +14,7 @@ lim_counts = {
 configs_by_classifier = {
     'rf': [
         {
-            'features_count': feature_count,
+            'feature_count': feature_count,
             'features': [
                 'paths',
                 'starts'
