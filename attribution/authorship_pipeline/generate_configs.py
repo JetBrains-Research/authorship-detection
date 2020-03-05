@@ -14,6 +14,7 @@ lim_counts = {
 configs_by_classifier = {
     'rf': [
         {
+            'features_count': feature_count,
             'features': [
                 'paths',
                 'starts'
@@ -28,6 +29,7 @@ configs_by_classifier = {
             }
         }
         # for n_estimators in [100, 300, 500]
+        for feature_count in [10000]
         for n_estimators in [300]
         # for max_features in ['log2', 'sqrt']
         for max_features in ['log2']
