@@ -29,11 +29,14 @@ def compute_occurrences(processed_folder: ProcessedFolder) -> Tuple[Counter, Cou
     total_count = 0
 
     for change_file in processed_folder.file_changes:
-        change_ids = pd.read_csv(change_file, usecols=["changeId"], squeeze=True)
-        for change_id in change_ids:
-            author = resolved_entities.loc[change_id]
+        change_ids = pd.read_csv(change_file, usecols=["changeId", "pathsCountBefore", "pathsCountAfter"])
+        for ind, row in change_ids.iterrows():
+            if row['pathsCountBefore'] > 0 or row['pathsCountAfter'] == 0:
+                continue
+
+            author = resolved_entities.loc[row['changeId']]
             author_occurrences[author] += 1
-            change_occurrences[change_id] += 1
+            change_occurrences[row['changeId']] += 1
 
             if author not in author_to_changes:
                 author_to_changes[author] = []
