@@ -29,10 +29,10 @@ configs_by_classifier = {
             }
         }
         # for n_estimators in [100, 300, 500]
-        for feature_count in [10000]
+        for feature_count in [20000]
         for n_estimators in [300]
         # for max_features in ['log2', 'sqrt']
-        for max_features in ['log2']
+        for max_features in ['sqrt']
     ],
     'nn': [
         {
@@ -40,12 +40,12 @@ configs_by_classifier = {
             'learning_rate': lr,
             'hidden_dim': hidden_dim,
             'batch_size': 1024,
-            'epochs': 20
+            'epochs': 10
         }
         # for lr in [0.01, 0.005]
         for lr in [0.01]
         # for hidden_dim in [16, 42, 64]
-        for hidden_dim in [32, 64]
+        for hidden_dim in [64]
     ],
     'caliskan': [
         {
