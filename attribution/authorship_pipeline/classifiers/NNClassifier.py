@@ -28,28 +28,32 @@ class NNClassifier(BaseClassifier):
         return train_loader, test_loader
 
     def __train(self, train_loader, test_loaders, model, optimizer, loss_function, n_epochs, log_batches, batch_size,
-                fold_ind):
+                fold_ind, should_train):
         print("Start training")
         accuracies = [ClassificationResult(0, 0, 0, 0) for _ in range(len(test_loaders))]
+        if not should_train:
+            n_epochs = 1
+
         for epoch in range(n_epochs):
             print("Epoch #{}".format(epoch + 1))
-            current_loss = 0
-            start_time = time.time()
-            for n_batch, sample in enumerate(train_loader):
-                starts, paths, ends, labels = sample['starts'], sample['paths'], sample['ends'], sample['labels']
-                optimizer.zero_grad()
+            if should_train:
+                current_loss = 0
+                start_time = time.time()
+                for n_batch, sample in enumerate(train_loader):
+                    starts, paths, ends, labels = sample['starts'], sample['paths'], sample['ends'], sample['labels']
+                    optimizer.zero_grad()
 
-                predictions = model((starts, paths, ends))
-                loss = loss_function(predictions, labels)
-                loss.backward()
-                optimizer.step()
+                    predictions = model((starts, paths, ends))
+                    loss = loss_function(predictions, labels)
+                    loss.backward()
+                    optimizer.step()
 
-                current_loss += loss.item()
-                if (n_batch + 1) % log_batches == 0:
-                    print("After {} batches: average loss {}".format(n_batch + 1, current_loss / log_batches))
-                    print(f"Throughput {int(log_batches * batch_size / (time.time() - start_time))} examples / sec")
-                    current_loss = 0
-                    start_time = time.time()
+                    current_loss += loss.item()
+                    if (n_batch + 1) % log_batches == 0:
+                        print("After {} batches: average loss {}".format(n_batch + 1, current_loss / log_batches))
+                        print(f"Throughput {int(log_batches * batch_size / (time.time() - start_time))} examples / sec")
+                        current_loss = 0
+                        start_time = time.time()
 
             with torch.no_grad():
                 for i, test_loader in enumerate(test_loaders):
@@ -89,10 +93,15 @@ class NNClassifier(BaseClassifier):
 
     def __run_classifier(self, train_loader: DataLoader, test_loaders: Union[DataLoader, List[DataLoader]], fold_ind) \
             -> Union[float, List[float]]:
-        model = ProjectClassifier(self._loader.tokens().size,
-                                  self._loader.paths().size,
-                                  dim=self.config.hidden_dim(),
-                                  n_classes=self._loader.n_classes())
+        if isinstance(fold_ind, int) or fold_ind[0] not in self.models:
+            model = ProjectClassifier(self._loader.tokens().size,
+                                      self._loader.paths().size,
+                                      dim=self.config.hidden_dim(),
+                                      n_classes=self._loader.n_classes())
+            should_train = True
+        else:
+            model = self.models[fold_ind[0]]
+            should_train = False
 
         optimizer = optim.Adam(model.parameters(), lr=self.config.learning_rate())
         loss_function = nn.CrossEntropyLoss()
@@ -103,7 +112,11 @@ class NNClassifier(BaseClassifier):
                                   n_epochs=self.config.epochs(),
                                   log_batches=self.config.log_batches(),
                                   batch_size=self.config.batch_size(),
-                                  fold_ind=fold_ind)
+                                  fold_ind=fold_ind, should_train=should_train)
+
+        if not isinstance(fold_ind, int) and fold_ind[0] not in self.models:
+            self.models[fold_ind[0]] = model
+
         if len(test_loaders) == 1:
             return max(accuracies, key=lambda cl: cl.accuracy)
         else:

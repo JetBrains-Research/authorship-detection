@@ -25,6 +25,7 @@ class CaliskanClassifier():
         if config.feature_count() is not None:
             self.dataset.limit_features(mutual_information=self.mutual_info, n_features=config.feature_count())
         self.dataset.filter_authors(min_max_count)
+        self.models = {}
 
     def __split_data(self, fold_ind: Union[int, Tuple[int, int]]) -> \
             Tuple[csc_matrix, np.ndarray, csc_matrix, np.ndarray]:
@@ -76,9 +77,14 @@ class CaliskanClassifier():
     def __run_classifier(self, X_train, X_test, y_train, y_test, fold_ind, single=True) -> \
             Union[ClassificationResult, List[ClassificationResult]]:
         params = self.config.params()
-        model = RandomForestClassifier(**params)
-        print("Fitting classifier")
-        model.fit(X_train, y_train)
+        if isinstance(fold_ind, int) or fold_ind[0] not in self.models:
+            model = RandomForestClassifier(**params)
+            print("Fitting classifier")
+            model.fit(X_train, y_train)
+            if not isinstance(fold_ind, int):
+                self.models[fold_ind[0]] = model
+        else:
+            model = self.models[fold_ind[0]]
         print("Making predictions")
         if single:
             predictions = model.predict(X_test)

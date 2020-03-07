@@ -20,6 +20,7 @@ class RFClassifier(BaseClassifier):
         super(RFClassifier, self).__init__(config, project_folder, change_entities, change_to_time_bucket,
                                            min_max_count, author_occurrences, context_splits)
         self.__feature_scores = None
+        self.mis = {}
 
     def __build_sparse_matrix(self, dataset: PathMinerDataset, features: List[str]) -> csc_matrix:
         print("Building sparse matrix")
@@ -55,7 +56,12 @@ class RFClassifier(BaseClassifier):
         X_test = self.__build_sparse_matrix(test_dataset, self.config.features())
         y_test = test_dataset.labels()
         if self.config.feature_count() is not None:
-            mi = compute_mi(X_train, train_dataset.labels())
+            if isinstance(fold_ind, int) or fold_ind[0] not in self.mis:
+                mi = compute_mi(X_train, train_dataset.labels())
+                if not isinstance(fold_ind, int):
+                    self.mis[fold_ind[0]] = mi
+            else:
+                mi = self.mis[fold_ind[0]]
             X_train = limit_features(X_train, mi, self.config.feature_count())
             X_test = limit_features(X_test, mi, self.config.feature_count())
 
@@ -79,9 +85,15 @@ class RFClassifier(BaseClassifier):
             Union[ClassificationResult, List[ClassificationResult]]:
 
         params = self.config.params()
-        model = RandomForestClassifier(**params)
-        print("Fitting classifier")
-        model.fit(X_train, y_train)
+        if isinstance(fold_ind, int) or fold_ind[0] not in self.models:
+            model = RandomForestClassifier(**params)
+            print("Fitting classifier")
+            model.fit(X_train, y_train)
+            if not isinstance(fold_ind, int):
+                self.models[fold_ind[0]] = model
+        else:
+            model = self.models[fold_ind[0]]
+
         print("Making predictions")
         if single:
             predictions = model.predict(X_test)

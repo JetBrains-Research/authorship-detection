@@ -58,6 +58,7 @@ class BaseClassifier:
         )
         self.__indices_per_class, self._n_classes = self.__split_into_classes()
         self.update_chosen_classes()
+        self.models = {}
 
     def __fix_random(self):
         np.random.seed(self.config.seed())
