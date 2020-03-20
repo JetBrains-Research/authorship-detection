@@ -1,5 +1,1 @@
-intellij-community
 gradle
-neo4j
-Osmand
-mule
