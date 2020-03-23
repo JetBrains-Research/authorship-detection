@@ -33,7 +33,11 @@ def draw_context(min_count, max_count, results):
     ax.set_ylabel('Accuracy', fontsize=36)
 
     fig.savefig(
-        f"/home/egor/Work/authorship-detection/figures/{args.project}/contextsplit-graph-{min_count}-{max_count}.pdf",
+        f"../../figures/{args.project}/contextsplit-graph-{min_count}-{max_count}.pdf",
+        bbox_inches='tight')
+
+    fig.savefig(
+        f"../../figures/{args.project}/contextsplit-graph-{min_count}-{max_count}.png",
         bbox_inches='tight')
 
     # plt.show()
@@ -66,7 +70,11 @@ def draw_time(min_count, max_count, label, results):
     ax.set_ylabel('Accuracy', fontsize=36)
 
     fig.savefig(
-        f"/home/egor/Work/authorship-detection/figures/{args.project}/timesplit-graph-{label}-{min_count}-{max_count}.pdf",
+        f"../../figures/{args.project}/timesplit-graph-{label}-{min_count}-{max_count}.pdf",
+        bbox_inches='tight')
+
+    fig.savefig(
+        f"../../figures/{args.project}/timesplit-graph-{label}-{min_count}-{max_count}.png",
         bbox_inches='tight')
     # plt.show()
 
