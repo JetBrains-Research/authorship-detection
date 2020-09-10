@@ -8,8 +8,9 @@ import pandas as pd
 from classifiers.config import Config
 from data_loading.PathMinerDataset import PathMinerDataset
 from data_loading.PathMinerLoader import PathMinerLoader
+from data_loading.PathMinerSnapshotLoader import PathMinerSnapshotLoader
 from preprocessing.context_split import PickType, ContextSplit
-from util import ProcessedFolder
+from util import ProcessedFolder, ProcessedSnapshotFolder
 
 ClassificationResult = namedtuple(
     'ClassificationResult',
@@ -48,14 +49,18 @@ def compute_classification_result(
 
 class BaseClassifier:
 
-    def __init__(self, config: Config, project_folder: ProcessedFolder, change_entities: pd.Series,
-                 change_to_time_bucket: Dict, min_max_count: Tuple[int, int], author_occurrences: Counter,
-                 context_splits: List[ContextSplit]):
+    def __init__(self, config: Config, project_folder: Union[ProcessedFolder, ProcessedSnapshotFolder],
+                 change_entities: pd.Series, change_to_time_bucket: Dict, min_max_count: Tuple[int, int],
+                 author_occurrences: Counter, context_splits: List[ContextSplit]):
         self.config = config
         self.__fix_random()
-        self._loader = PathMinerLoader(
-            project_folder, change_entities, change_to_time_bucket, min_max_count, author_occurrences, context_splits
-        )
+        if config.mode() == "snapshot":
+            self._loader = PathMinerSnapshotLoader(project_folder)
+        else:
+            self._loader = PathMinerLoader(
+                project_folder, change_entities, change_to_time_bucket, min_max_count, author_occurrences,
+                context_splits
+            )
         self.__indices_per_class, self._n_classes = self.__split_into_classes()
         self.update_chosen_classes()
         self.models = {}
@@ -123,9 +128,9 @@ class BaseClassifier:
         return PathMinerDataset.from_loader(loader, train_indices, pad), \
                PathMinerDataset.from_loader(loader, test_indices, pad)
 
-    def cross_validation_folds(self) -> np.ndarray:
+    def cross_validation_folds(self) -> List[int]:
         test_size = self.config.test_size()
         if isinstance(test_size, float):
-            return np.arange(int(np.ceil(1. / test_size)))
+            return list(range(int(np.ceil(1. / test_size))))
         else:
-            return np.arange(int(np.ceil(max([inds.size for inds in self.__indices_per_class]) / test_size)))
+            return list(range((int(np.ceil(max([inds.size for inds in self.__indices_per_class]) / test_size)))))

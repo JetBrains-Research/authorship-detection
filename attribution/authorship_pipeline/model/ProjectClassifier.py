@@ -8,7 +8,7 @@ class ProjectClassifier(nn.Module):
     def __init__(self, n_tokens, n_paths, dim, n_classes):
         super(ProjectClassifier, self).__init__()
         self.vectorization = CodeVectorizer(n_tokens, n_paths, dim)
-        # self.transform = nn.Sequential(nn.Linear(dim, dim), nn.Tanh())
+        self.transform = nn.Sequential(nn.Linear(dim, dim), nn.Tanh())
         self.classifier = nn.Linear(dim, n_classes)
 
     def forward(self, contexts):

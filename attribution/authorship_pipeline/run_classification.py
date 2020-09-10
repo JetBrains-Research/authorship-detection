@@ -3,6 +3,7 @@ import os
 
 import yaml
 
+from classifiers.BaseClassifier import ClassificationResult
 from classifiers.CaliskanClassifier import CaliskanClassifier
 from classifiers.NNClassifier import NNClassifier
 from classifiers.RFClassifier import RFClassifier
@@ -11,7 +12,7 @@ from preprocessing.compute_occurrences import compute_occurrences
 from preprocessing.context_split import context_split
 from preprocessing.resolve_entities import resolve_entities
 from preprocessing.time_split import time_split
-from util import ProcessedFolder
+from util import ProcessedFolder, ProcessedSnapshotFolder
 
 
 def output_filename(input_file):
@@ -21,9 +22,10 @@ def output_filename(input_file):
 
 
 def output_file(input_file):
-    if not os.path.exists(os.path.dirname(input_file)):
-        os.makedirs(os.path.dirname(input_file))
-    return open(output_filename(input_file), 'w')
+    output_file = output_filename(input_file)
+    if not os.path.exists(os.path.dirname(output_file)):
+        os.makedirs(os.path.dirname(output_file))
+    return open(output_file, 'w')
 
 
 def main(args):
@@ -32,13 +34,21 @@ def main(args):
     #     exit(0)
 
     config = Config.fromyaml(args.config_file)
-    project_folder = ProcessedFolder(config.source_folder())
-    change_entities = resolve_entities(project_folder)
-    author_occurrences, _, _, _ = compute_occurrences(project_folder)
+
+    if config.mode() == 'snapshot':
+        project_folder = ProcessedSnapshotFolder(config.source_folder())
+        change_entities = None
+        author_occurrences = None
+    else:
+        project_folder = ProcessedFolder(config.source_folder())
+        change_entities = resolve_entities(project_folder)
+        author_occurrences, _, _, _ = compute_occurrences(project_folder)
+
     if config.mode() == 'time':
         change_to_time_bucket = time_split(project_folder, config.time_folds(), uniform_distribution=True)
     else:
         change_to_time_bucket = None
+
     if config.mode() == 'context':
         context_splits = context_split(project_folder, *config.min_max_count(), *config.min_max_train())
     else:
@@ -65,6 +75,13 @@ def main(args):
 
     mean, std, scores = classifier.run(fold_indices)
     print(f'{mean:.3f}+-{std:.3f}')
+    for i, score in enumerate(scores):
+        if isinstance(score, ClassificationResult):
+            scores[i] = ClassificationResult(
+                float(score.accuracy), float(score.macro_precision), float(score.macro_recall),
+                score.fold_ind
+            )
+
     yaml.dump({
         'mean': mean,
         'std': std,

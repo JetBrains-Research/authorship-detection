@@ -18,7 +18,7 @@ class PathMinerDataset(Dataset):
         self._should_pad = should_pad
         if should_pad:
             # self._pad_length = max([len(arr) for arr in self.contexts.starts])
-            self._pad_length = 200
+            self._pad_length = 1000
             # print(self._pad_length)
 
     @classmethod

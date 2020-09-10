@@ -11,7 +11,7 @@ class CodeVectorizer(nn.Module):
         super(CodeVectorizer, self).__init__()
         self.tokens_embed = nn.Embedding(n_tokens, dim)
         self.paths_embed = nn.Embedding(n_paths, dim)
-        self.dropout = nn.Dropout(p=0.5)
+        self.dropout = nn.Dropout(p=0.2)
         self.transform = nn.Sequential(nn.Linear(3 * dim, dim), nn.Tanh())
         self.attention = nn.Linear(dim, 1)
 

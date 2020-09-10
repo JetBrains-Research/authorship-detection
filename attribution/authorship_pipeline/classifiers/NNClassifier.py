@@ -36,6 +36,7 @@ class NNClassifier(BaseClassifier):
 
         for epoch in range(n_epochs):
             print("Epoch #{}".format(epoch + 1))
+            model.train()
             if should_train:
                 current_loss = 0
                 start_time = time.time()
@@ -55,6 +56,7 @@ class NNClassifier(BaseClassifier):
                         current_loss = 0
                         start_time = time.time()
 
+            model.eval()
             with torch.no_grad():
                 for i, test_loader in enumerate(test_loaders):
                     total = len(test_loader.dataset)
@@ -83,17 +85,17 @@ class NNClassifier(BaseClassifier):
                     classification_result = compute_classification_result(targets, predictions, fold_ind)
                     print(f"classification results: {classification_result}")
                     accuracies[i] = max(accuracies[i], classification_result, key=lambda cl: cl.accuracy)
-                    values, counts = np.unique(predictions, return_counts=True)
-                    vc = [(c, v) for v, c in zip(values, counts)]
-                    for cnt, val in sorted(vc):
-                        print(cnt, val)
+                    # values, counts = np.unique(predictions, return_counts=True)
+                    # vc = [(c, v) for v, c in zip(values, counts)]
+                    # for cnt, val in sorted(vc):
+                    #     print(cnt, val)
 
         print("Training completed")
         return accuracies
 
     def __run_classifier(self, train_loader: DataLoader, test_loaders: Union[DataLoader, List[DataLoader]], fold_ind) \
             -> Union[float, List[float]]:
-        if isinstance(fold_ind, int) or fold_ind[0] not in self.models:
+        if isinstance(fold_ind, int) or isinstance(fold_ind, np.int64) or fold_ind[0] not in self.models:
             model = ProjectClassifier(self._loader.tokens().size,
                                       self._loader.paths().size,
                                       dim=self.config.hidden_dim(),
@@ -114,7 +116,7 @@ class NNClassifier(BaseClassifier):
                                   batch_size=self.config.batch_size(),
                                   fold_ind=fold_ind, should_train=should_train)
 
-        if not isinstance(fold_ind, int) and fold_ind[0] not in self.models:
+        if not isinstance(fold_ind, int) and not isinstance(fold_ind, np.int64) and fold_ind[0] not in self.models:
             self.models[fold_ind[0]] = model
 
         if len(test_loaders) == 1:
@@ -127,6 +129,7 @@ class NNClassifier(BaseClassifier):
         print("Begin cross validation")
         scores = []
         for fold_ind in fold_indices:
+            # print(fold_ind)
             train_loader, test_loader = self.__sample_loaders(fold_ind)
             scores.append(self.__run_classifier(train_loader, test_loader, fold_ind))
             print(scores[-1])

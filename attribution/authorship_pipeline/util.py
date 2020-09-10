@@ -66,3 +66,12 @@ class ProcessedFolder:
             paths = pd.read_csv(self.path_ids_file, index_col=0)
             self._n_paths = len(paths)
         return self._n_paths
+
+
+class ProcessedSnapshotFolder:
+    def __init__(self, folder: str):
+        self.folder = folder
+        self.node_types_file = os.path.join(folder, "node_types.csv")
+        self.paths_file = os.path.join(folder, "paths.csv")
+        self.tokens_file = os.path.join(folder, "tokens.csv")
+        self.path_contexts_file = os.path.join(folder, "path_contexts.csv")
