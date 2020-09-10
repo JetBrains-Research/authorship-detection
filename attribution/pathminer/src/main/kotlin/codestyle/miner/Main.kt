@@ -1,5 +1,6 @@
 package codestyle.miner
 
+import astminer.cli.PathContextsExtractor
 import com.github.gumtreediff.client.Run
 import com.github.gumtreediff.tree.ITree
 import com.github.gumtreediff.tree.TreeContext
@@ -20,14 +21,19 @@ enum class Mode {
 }
 
 fun main(args: Array<String>) {
-    if (args.size != 1) {
-        throw IllegalArgumentException("Specify exactly one argument: type of extracted data `contexts` or `code`")
+    if (args.isEmpty()) {
+        throw IllegalArgumentException("Specify type of extracted data `snapshot`, `contexts`, `code`, or `all`")
+    }
+    if (args[0] == "snapshot") {
+        return PathContextsExtractor(
+                FirstFolderExtractor(detectProjectPath(args))
+        ).main(args.sliceArray(1 until args.size))
     }
     val mode = when (args[0]) {
         "contexts" -> Mode.ExtractContexts
         "code" -> Mode.ExtractCode
         "all" -> Mode.ExtractAll
-        else -> throw IllegalArgumentException("Mode should be either `contexts` or `code`, not ${args[0]}")
+        else -> throw IllegalArgumentException("Mode should be either `snapshot`, `contexts`, `code`, or `all`, not ${args[0]}")
     }
     val repoNames = readRepoNames()
     repoNames.forEach {
