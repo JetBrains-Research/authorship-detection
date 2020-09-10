@@ -25,7 +25,24 @@ To run experiments:
 * Create configuration file manually (for examples see [configs](attribution/authorship_pipeline/configs) directory) or 
 edit and run `generate_configs.py`.
 * Run `python run_classification.py configs/your/config.yaml`
-* To draw graphs for evaluation on your project run `draw_graphs.py --project your_project_name` 
+* To draw graphs for evaluation on your project run `draw_graphs.py --project your_project_name`
+
+To run cross-validation on new data:
+* Put source code files in `datasets/datasetName/{author}/{files}`. Make sure files of each author are in a single directory. 
+* Run data extraction to mine path-contexts from the source files:
+```
+java -jar attribution/pathminer/extract-path-contexts.jar snapshot \
+    --project datasets/datasetName/ \
+    --output processed/datasetName/ \
+    --java-parser antlr \
+    --maxContexts 1000 --maxH 8 --maxW 3
+```
+* Depending on the language, extracted data will be in the `processed/datasetName/{c,cpp,java,py}` folder.
+* To run cross-validation, create a configuration file (e.g., 
+[PbNN](attribution/authorship_pipeline/configs/java40/nn) or 
+[PbRF](attribution/authorship_pipeline/configs/java40/rf))) 
+and run `python -m run_classification path/to/config` in `attribution/authorship_pipeline` folder.
+
 ## Results
 
 ### [IntelliJ Community](https://github.com/jetbrains/intellij-community)
