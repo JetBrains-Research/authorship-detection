@@ -26,7 +26,7 @@ fun main(args: Array<String>) {
     }
     if (args[0] == "snapshot") {
         return PathContextsExtractor(
-                FirstFolderExtractor(detectProjectPath(args))
+                FirstFolderExtractor(File(detectProjectPath(args)).absolutePath)
         ).main(args.sliceArray(1 until args.size))
     }
     val mode = when (args[0]) {

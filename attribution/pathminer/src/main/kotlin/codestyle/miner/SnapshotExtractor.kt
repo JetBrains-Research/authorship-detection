@@ -14,7 +14,7 @@ fun detectProjectPath(args: Array<String>): String {
 }
 
 class FirstFolderExtractor(private val projectPath: String) : FileLabelExtractor() {
-    private fun getFirstFolder(file: File): String = if (file.parentFile == null) {
+    private fun getFirstFolder(file: File): String = if (file.parentFile == null || file.parentFile.name.isEmpty()) {
         file.name.replace(" ", "_")
     } else {
         getFirstFolder(file.parentFile)
