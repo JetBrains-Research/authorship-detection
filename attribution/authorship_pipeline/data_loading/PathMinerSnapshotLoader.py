@@ -25,12 +25,15 @@ class PathMinerSnapshotLoader:
         self._n_classes = len(entities)
 
     def _load_tokens(self, tokens_file: str) -> np.ndarray:
-        return self._series_to_ndarray(
-            pd.read_csv(tokens_file, sep=',', index_col='id', usecols=['id', 'token'], squeeze=True)
-        )
+        # return self._series_to_ndarray(
+        #     pd.read_csv(tokens_file, sep=',', index_col='id', usecols=['id', 'token'], squeeze=True)
+        # )
+        tokens = self._load_stub(tokens_file, 'token')
+        return self._series_to_ndarray(tokens)
 
     def _load_paths(self, paths_file: str) -> np.ndarray:
-        paths = pd.read_csv(paths_file, sep=',', index_col='id', usecols=['id', 'path'], squeeze=True)
+        # paths = pd.read_csv(paths_file, sep=',', index_col='id', usecols=['id', 'path'], squeeze=True)
+        paths = self._load_stub(paths_file, 'path')
         paths = paths.map(
             lambda nt: Path(
                 list(map(int, nt.split()))
@@ -39,9 +42,16 @@ class PathMinerSnapshotLoader:
         return self._series_to_ndarray(paths)
 
     def _load_node_types(self, node_types_file: str) -> np.ndarray:
-        node_types = pd.read_csv(node_types_file, sep=',', index_col='id', usecols=['id', 'node_type'], squeeze=True)
+        # node_types = pd.read_csv(node_types_file, sep=',', index_col='id', usecols=['id', 'node_type'], squeeze=True)
+        node_types = self._load_stub(node_types_file, 'node_type')
         node_types = node_types.map(lambda nt: NodeType(*nt.split()))
         return self._series_to_ndarray(node_types)
+
+    @staticmethod
+    def _load_stub(filename: str, col_name: str) -> pd.Series:
+        df = pd.read_csv(filename, sep=',')
+        df = df.set_index('id')
+        return df[col_name]
 
     @staticmethod
     def _load_path_contexts_files(path_contexts_file: str) -> Tuple[np.ndarray, PathContexts]:
