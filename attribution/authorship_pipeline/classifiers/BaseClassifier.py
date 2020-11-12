@@ -27,6 +27,11 @@ def compute_classification_result(
     tp, fp, tn, fn = 0, 0, 0, 0
     precisions = []
     recalls = []
+    print('===========')
+    for true_label, predicted_label in zip(true_labels, predicted_labels):
+        if true_label != predicted_label:
+            print(f'true: {true_label} predicted: {predicted_label}')
+    print('===========')
     for label, count in zip(labels, counts):
         true_positive = np.sum(np.logical_and(true_labels == label, predicted_labels == label))
         false_positive = np.sum(np.logical_and(true_labels != label, predicted_labels == label))
