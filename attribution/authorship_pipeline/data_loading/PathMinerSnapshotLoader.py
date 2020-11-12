@@ -21,9 +21,11 @@ class PathMinerSnapshotLoader:
         self._original_labels, self._labels = self.enumerate_labels(self._original_labels)
 
         entities, counts = np.unique(self._labels, return_counts=True)
-        ec = [(c, e) for e, c in zip(entities, counts)]
-        for i, (c, e) in enumerate(sorted(ec)):
-            print(f'{i}: {e} -> {c} | {c / len(self._labels):.4f}')
+        for orig, label in zip(self._original_labels, self._labels):
+            print(f'{orig} -> {label}')
+        # ec = [(c, e) for e, c in zip(entities, counts)]
+        # for i, (c, e) in enumerate(sorted(ec)):
+        #     print(f'{i}: {e} -> {c} | {c / len(self._labels):.4f}')
         self._n_classes = len(entities)
 
     def _load_tokens(self, tokens_file: str) -> np.ndarray:
