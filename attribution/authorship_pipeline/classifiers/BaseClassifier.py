@@ -125,6 +125,9 @@ class BaseClassifier:
             train_indices = np.array(train_indices, dtype=np.int32)
             test_indices = np.array(test_indices, dtype=np.int32)
 
+        return self._create_datasets(loader, train_indices, test_indices, pad)
+
+    def _create_datasets(self, loader, train_indices, test_indices, pad) -> Tuple[PathMinerDataset, PathMinerDataset]:
         return PathMinerDataset.from_loader(loader, train_indices, pad), \
                PathMinerDataset.from_loader(loader, test_indices, pad)
 

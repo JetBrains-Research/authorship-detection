@@ -7,6 +7,9 @@ from tqdm import tqdm
 
 def limit_features(features: csc_matrix, mutual_information: np.ndarray, n_features: int):
     indices = np.argsort(mutual_information)[-n_features:]
+    # print(len(mutual_information))
+    # indices = mutual_information > 1e-5
+    # print(sum(indices))
     features = features[:, indices]
     return features
 

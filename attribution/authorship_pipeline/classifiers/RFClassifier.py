@@ -58,6 +58,21 @@ class RFClassifier(BaseClassifier):
         if self.config.feature_count() is not None:
             if isinstance(fold_ind, int) or fold_ind[0] not in self.mis:
                 mi = compute_mi(X_train, train_dataset.labels())
+                sorted_inds = np.argsort(mi)
+                print('low info')
+                for i in sorted_inds[:30]:
+                    if i < self._loader.tokens().size:
+                        print(f'Token: {self._loader.tokens()[i]} | {mi[i]}')
+                    else:
+                        print(f'Path: {self._loader.paths()[i - self._loader.tokens().size].prettyprint(self._loader.node_types())} | {mi[i]}')
+
+                print('high info')
+                for i in sorted_inds[-30:]:
+                    if i < self._loader.tokens().size:
+                        print(f'Token: {self._loader.tokens()[i]} | {mi[i]}')
+                    else:
+                        print(f'Path: {self._loader.paths()[i - self._loader.tokens().size].prettyprint(self._loader.node_types())} | {mi[i]}')
+
                 if not isinstance(fold_ind, int):
                     self.mis[fold_ind[0]] = mi
             else:
@@ -100,3 +115,9 @@ class RFClassifier(BaseClassifier):
             return compute_classification_result(y_test, predictions, fold_ind)
         else:
             return [compute_classification_result(y, model.predict(X), fold_ind) for X, y in zip(X_test, y_test)]
+
+    def _create_datasets(self, loader, train_indices, test_indices, pad) -> Tuple[PathMinerDataset, PathMinerDataset]:
+        if self.config.mode() != "snapshot":
+            return super(RFClassifier, self)._create_datasets(loader, train_indices, test_indices, pad)
+        return PathMinerDataset.from_rf_loader(loader, train_indices), \
+               PathMinerDataset.from_rf_loader(loader, test_indices)
