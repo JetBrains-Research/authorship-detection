@@ -21,7 +21,7 @@ class PathMinerSnapshotLoader:
         self._original_labels, self._labels = self.enumerate_labels(self._original_labels)
 
         entities, counts = np.unique(self._labels, return_counts=True)
-        for i, orig, label in enumerate(self._original_labels):
+        for i, orig in enumerate(self._original_labels):
             print(f'{orig} -> {i}')
         # ec = [(c, e) for e, c in zip(entities, counts)]
         # for i, (c, e) in enumerate(sorted(ec)):
