@@ -21,8 +21,8 @@ class PathMinerSnapshotLoader:
         self._original_labels, self._labels = self.enumerate_labels(self._original_labels)
 
         entities, counts = np.unique(self._labels, return_counts=True)
-        for i, orig in enumerate(self._original_labels):
-            print(f'{orig} -> {i}')
+        # for i, orig in enumerate(self._original_labels):
+        #     print(f'{orig} -> {i}')
         # ec = [(c, e) for e, c in zip(entities, counts)]
         # for i, (c, e) in enumerate(sorted(ec)):
         #     print(f'{i}: {e} -> {c} | {c / len(self._labels):.4f}')
@@ -53,7 +53,7 @@ class PathMinerSnapshotLoader:
 
     @staticmethod
     def _load_stub(filename: str, col_name: str) -> pd.Series:
-        df = pd.read_csv(filename, sep=',')
+        df = pd.read_csv(filename, sep=',', lineterminator='\n')
         df = df.set_index('id')
         return df[col_name]
 
