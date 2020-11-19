@@ -34,18 +34,21 @@ class RFClassifier(BaseClassifier):
                 normalizer = counts.sum()
 
                 for ind, count in zip(inds, counts):
-                    data.append(count)
+                    data.append(count / normalizer)
                     row_ind.append(i)
                     col_ind.append(pref + ind)
 
-                for ind, count in zip(inds, counts):
-                    data.append(count / normalizer)
-                    row_ind.append(i)
-                    col_ind.append(pref + feature_count + ind)
+                # for ind, count in zip(inds, counts):
+                #     data.append(count / normalizer)
+                #     row_ind.append(i)
+                #     col_ind.append(pref + feature_count + ind)
 
-            pref += 2 * feature_count
-            # pref += feature_count
-
+            # pref += 2 * feature_count
+            pref += feature_count
+        # print(data)
+        print(max(row_ind))
+        print(max(col_ind))
+        print(len(dataset), pref)
         return csc_matrix((data, (row_ind, col_ind)), shape=(len(dataset), pref))
 
     def __feature_count(self, feature: str):
@@ -70,6 +73,14 @@ class RFClassifier(BaseClassifier):
                     self.mis[fold_ind[0]] = mi
             else:
                 mi = self.mis[fold_ind[0]]
+            # token_strings = self._loader.tokens()
+            # print(token_strings)
+            # path_strings = list(map(
+            #     lambda path: path.prettyprint(self._loader.node_types())
+            #     if path is not None else None,
+            #     self._loader.paths())
+            # )
+            # print(path_strings)
             X_train = limit_features(X_train, mi, self.config.feature_count())
             X_test = limit_features(X_test, mi, self.config.feature_count())
 

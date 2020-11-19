@@ -1,7 +1,7 @@
 batch_size: 16
 classifier_type: nn
 epochs: 10
-hidden_dim: 128
+hidden_dim: 256
 learning_rate: 0.01
 log_batches: 10
 mode: snapshot

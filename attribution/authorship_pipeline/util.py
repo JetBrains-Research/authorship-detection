@@ -75,3 +75,4 @@ class ProcessedSnapshotFolder:
         self.paths_file = os.path.join(folder, "paths.csv")
         self.tokens_file = os.path.join(folder, "tokens.csv")
         self.path_contexts_file = os.path.join(folder, "path_contexts.csv")
+        self.path_tokens_file = os.path.join(folder, "path_tokens.csv")

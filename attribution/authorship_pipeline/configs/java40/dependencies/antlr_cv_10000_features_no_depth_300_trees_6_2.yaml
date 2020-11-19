@@ -1,14 +1,14 @@
-source_folder: ../../processed/java_antlr_8_2/java/
+source_folder: ../../processed/java_antlr_6_2/java/
 classifier_type: rf
 mode: snapshot
 features:
-  - "paths"
   - "starts"
+  - "paths"
 seed: 239
-test_size: 0.1
-feature_count: 5000
+test_size: 1
+feature_count: 10000
 params:
-  n_estimators: 400
+  n_estimators: 300
   n_jobs: -1
   min_samples_leaf: 1
   min_samples_split: 2
