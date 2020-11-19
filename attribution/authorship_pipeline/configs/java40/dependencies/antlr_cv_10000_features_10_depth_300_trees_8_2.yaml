@@ -5,7 +5,7 @@ features:
   - "starts"
   - "paths"
 seed: 239
-test_size: 1
+test_size: 0.1
 feature_count: 10000
 params:
   n_estimators: 300
