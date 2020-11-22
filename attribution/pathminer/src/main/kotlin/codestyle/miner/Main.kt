@@ -1,6 +1,6 @@
 package codestyle.miner
 
-import astminer.cli.PathContextsExtractor
+import astminer.cli.AuthorshipExtractor
 import com.github.gumtreediff.client.Run
 import com.github.gumtreediff.tree.ITree
 import com.github.gumtreediff.tree.TreeContext
@@ -25,7 +25,7 @@ fun main(args: Array<String>) {
         throw IllegalArgumentException("Specify type of extracted data `snapshot`, `contexts`, `code`, or `all`")
     }
     if (args[0] == "snapshot") {
-        return PathContextsExtractor(
+        return AuthorshipExtractor(
                 FirstFolderExtractor(File(detectProjectPath(args)).absolutePath)
         ).main(args.sliceArray(1 until args.size))
     }

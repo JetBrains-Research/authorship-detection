@@ -1,0 +1,10 @@
+batch_size: 16
+classifier_type: nn
+epochs: 10
+hidden_dim: 32
+learning_rate: 0.01
+log_batches: 10
+mode: snapshot
+seed: 239
+test_size: 1
+source_folder: ../../processed/gcj_joern_8_2/cpp/

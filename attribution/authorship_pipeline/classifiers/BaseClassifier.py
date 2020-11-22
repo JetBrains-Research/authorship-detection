@@ -27,6 +27,11 @@ def compute_classification_result(
     tp, fp, tn, fn = 0, 0, 0, 0
     precisions = []
     recalls = []
+    # print('===========')
+    # for true_label, predicted_label in zip(true_labels, predicted_labels):
+    #     if true_label != predicted_label:
+    #         print(f'true: {true_label} predicted: {predicted_label}')
+    # print('===========')
     for label, count in zip(labels, counts):
         true_positive = np.sum(np.logical_and(true_labels == label, predicted_labels == label))
         false_positive = np.sum(np.logical_and(true_labels != label, predicted_labels == label))
@@ -125,6 +130,9 @@ class BaseClassifier:
             train_indices = np.array(train_indices, dtype=np.int32)
             test_indices = np.array(test_indices, dtype=np.int32)
 
+        return self._create_datasets(loader, train_indices, test_indices, pad)
+
+    def _create_datasets(self, loader, train_indices, test_indices, pad) -> Tuple[PathMinerDataset, PathMinerDataset]:
         return PathMinerDataset.from_loader(loader, train_indices, pad), \
                PathMinerDataset.from_loader(loader, test_indices, pad)
 

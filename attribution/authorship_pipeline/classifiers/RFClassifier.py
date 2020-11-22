@@ -31,15 +31,25 @@ class RFClassifier(BaseClassifier):
         for feature, feature_count in zip(features, feature_counts):
             for i, item in enumerate(dataset):
                 inds, counts = np.unique(item[feature], return_counts=True)
+                normalizer = counts.sum()
 
                 for ind, count in zip(inds, counts):
-                    data.append(count)
+                    data.append(count / normalizer)
                     row_ind.append(i)
                     col_ind.append(pref + ind)
 
-            pref += feature_count
+                # for ind, count in zip(inds, counts):
+                #     data.append(count / normalizer)
+                #     row_ind.append(i)
+                #     col_ind.append(pref + feature_count + ind)
 
-        return csc_matrix((data, (row_ind, col_ind)), shape=(len(dataset), sum(feature_counts)))
+            # pref += 2 * feature_count
+            pref += feature_count
+        # print(data)
+        print(max(row_ind))
+        print(max(col_ind))
+        print(len(dataset), pref)
+        return csc_matrix((data, (row_ind, col_ind)), shape=(len(dataset), pref))
 
     def __feature_count(self, feature: str):
         if feature == 'paths':
@@ -58,10 +68,19 @@ class RFClassifier(BaseClassifier):
         if self.config.feature_count() is not None:
             if isinstance(fold_ind, int) or fold_ind[0] not in self.mis:
                 mi = compute_mi(X_train, train_dataset.labels())
+
                 if not isinstance(fold_ind, int):
                     self.mis[fold_ind[0]] = mi
             else:
                 mi = self.mis[fold_ind[0]]
+            # token_strings = self._loader.tokens()
+            # print(token_strings)
+            # path_strings = list(map(
+            #     lambda path: path.prettyprint(self._loader.node_types())
+            #     if path is not None else None,
+            #     self._loader.paths())
+            # )
+            # print(path_strings)
             X_train = limit_features(X_train, mi, self.config.feature_count())
             X_test = limit_features(X_test, mi, self.config.feature_count())
 
@@ -100,3 +119,9 @@ class RFClassifier(BaseClassifier):
             return compute_classification_result(y_test, predictions, fold_ind)
         else:
             return [compute_classification_result(y, model.predict(X), fold_ind) for X, y in zip(X_test, y_test)]
+
+    def _create_datasets(self, loader, train_indices, test_indices, pad) -> Tuple[PathMinerDataset, PathMinerDataset]:
+        if self.config.mode() != "snapshot":
+            return super(RFClassifier, self)._create_datasets(loader, train_indices, test_indices, pad)
+        return PathMinerDataset.from_rf_loader(loader, train_indices), \
+               PathMinerDataset.from_rf_loader(loader, test_indices)

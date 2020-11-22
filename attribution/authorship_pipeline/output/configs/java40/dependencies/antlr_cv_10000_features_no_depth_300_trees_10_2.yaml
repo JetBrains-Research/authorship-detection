@@ -1,0 +1,53 @@
+mean: 0.9644857872654617
+scores:
+- !!python/object/new:classifiers.BaseClassifier.ClassificationResult
+  - 0.9813664596273292
+  - 0.9465640307918803
+  - 0.9717029688614793
+  - 0
+- !!python/object/new:classifiers.BaseClassifier.ClassificationResult
+  - 0.9503105590062112
+  - 0.9081483627879425
+  - 0.9209814528444868
+  - 1
+- !!python/object/new:classifiers.BaseClassifier.ClassificationResult
+  - 0.953416149068323
+  - 0.9326286386441207
+  - 0.9565090608638813
+  - 2
+- !!python/object/new:classifiers.BaseClassifier.ClassificationResult
+  - 0.9658385093167702
+  - 0.9588249598250581
+  - 0.9758036168817451
+  - 3
+- !!python/object/new:classifiers.BaseClassifier.ClassificationResult
+  - 0.937888198757764
+  - 0.9354827074047231
+  - 0.9506948986889003
+  - 4
+- !!python/object/new:classifiers.BaseClassifier.ClassificationResult
+  - 0.9688473520249221
+  - 0.9657539624520698
+  - 0.9593570546638809
+  - 5
+- !!python/object/new:classifiers.BaseClassifier.ClassificationResult
+  - 0.9875
+  - 0.991957788483694
+  - 0.9846782797146069
+  - 6
+- !!python/object/new:classifiers.BaseClassifier.ClassificationResult
+  - 0.9558359621451105
+  - 0.9678847960031438
+  - 0.9699751501112596
+  - 7
+- !!python/object/new:classifiers.BaseClassifier.ClassificationResult
+  - 0.9629629629629629
+  - 0.9317153661865488
+  - 0.9900146731330507
+  - 8
+- !!python/object/new:classifiers.BaseClassifier.ClassificationResult
+  - 0.9808917197452229
+  - 0.9978243667485569
+  - 0.9574203081236987
+  - 9
+std: 0.014875022624251744

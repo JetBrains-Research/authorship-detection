@@ -21,6 +21,8 @@ class FirstFolderExtractor(private val projectPath: String) : FileLabelExtractor
     }
 
     override fun extractLabel(root: Node, filePath: String): String? {
-        return getFirstFolder(File(filePath.removePrefix(projectPath)))
+//        return filePath
+        val result = getFirstFolder(File(File(filePath).absolutePath.removePrefix(projectPath)))
+        return result
     }
 }

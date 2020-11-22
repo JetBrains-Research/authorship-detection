@@ -1,4 +1,4 @@
-source_folder: ../../processed/java40/java/
+source_folder: ../../processed/java_antlr_8_2/java/
 classifier_type: rf
 mode: snapshot
 features:

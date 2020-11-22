@@ -7,4 +7,4 @@ log_batches: 10
 mode: snapshot
 seed: 239
 test_size: 0.1
-source_folder: ../../processed/java40/java/
+source_folder: ../../processed/java_antlr_8_2/java/

@@ -1,8 +1,9 @@
 import pandas as pd
 import numpy as np
 import os
+from tqdm import tqdm
 
-from typing import Tuple
+from typing import Tuple, List
 from sklearn.preprocessing import LabelEncoder
 
 from data_loading.UtilityEntities import Path, NodeType, PathContexts, PathContext
@@ -15,10 +16,13 @@ class PathMinerSnapshotLoader:
         self._tokens = self._load_tokens(project_folder.tokens_file)
         self._node_types = self._load_node_types(project_folder.node_types_file)
         self._paths = self._load_paths(project_folder.paths_file)
-        self._original_labels, self._path_contexts = self._load_path_contexts_files(project_folder.path_contexts_file)
+        _, self._path_contexts = self._load_path_contexts_files(project_folder.path_contexts_file)
+        self._original_labels, self._tokens_by_author, self._paths_by_author = self._load_rf_contexts_file(project_folder.path_tokens_file)
         self._original_labels, self._labels = self.enumerate_labels(self._original_labels)
 
         entities, counts = np.unique(self._labels, return_counts=True)
+        # for i, orig in enumerate(self._original_labels):
+        #     print(f'{orig} -> {i}')
         # ec = [(c, e) for e, c in zip(entities, counts)]
         # for i, (c, e) in enumerate(sorted(ec)):
         #     print(f'{i}: {e} -> {c} | {c / len(self._labels):.4f}')
@@ -49,17 +53,39 @@ class PathMinerSnapshotLoader:
 
     @staticmethod
     def _load_stub(filename: str, col_name: str) -> pd.Series:
-        df = pd.read_csv(filename, sep=',')
+        df = pd.read_csv(filename, sep=',', lineterminator='\n', quoting=3)
         df = df.set_index('id')
         return df[col_name]
+
+    @staticmethod
+    def _load_rf_contexts_file(rf_contexts_file: str) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        raw_data = [line.strip().split(' ', 1) for line in open(rf_contexts_file, 'r').readlines()]
+        labels = []
+        tokens = []
+        paths = []
+
+        for label, contexts in tqdm(raw_data):
+            labels.append(label)
+            local_tokens = []
+            local_paths = []
+            for context in contexts.split():
+                t, val = context.split(',')
+                if t == 'token':
+                    local_tokens.append(int(val))
+                else:
+                    local_paths.append(int(val))
+            tokens.append(np.array(local_tokens))
+            paths.append(np.array(local_paths))
+
+        return np.array(labels), np.array(tokens), np.array(paths)
 
     @staticmethod
     def _load_path_contexts_files(path_contexts_file: str) -> Tuple[np.ndarray, PathContexts]:
 
         raw_data = [line.strip().split(' ', 1) for line in open(path_contexts_file, 'r').readlines()]
 
-        labels = np.array([d[0] for d in raw_data if len(d) == 2])
-        raw_contexts = [d[1] for d in raw_data if len(d) == 2]
+        labels = np.array([d[0] for d in raw_data])
+        raw_contexts = [d[1] if len(d) == 2 else "1,1,1" for d in raw_data]
 
         path_contexts = [
             np.array(list(map(
