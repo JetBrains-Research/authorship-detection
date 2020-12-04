@@ -94,6 +94,7 @@ def collect_rf(dataset: str):
         _, _, features, _, depth, _, trees, _, length, suffix = file.split("_", 9)
         width, suffix = get_suffix(suffix)
         results[(features, depth, trees, length, width, suffix)] = (result['mean'], result['std'])
+    print('rf', dataset, max(r[0] for r in results.values()))
     return results
 
 
@@ -106,6 +107,7 @@ def collect_nn(dataset: str):
         print(file)
         _, dim, _, _, _ = file.split("_")
         results[dim] = (result['mean'], result['std'])
+    print('nn', dataset, max(r[0] for r in results.values()))
     return results
 
 
@@ -135,7 +137,7 @@ def pick_length(features, depth, trees, length, width, suffix):
     return None
 
 
-for dataset in ['gcj', 'java40']:
+for dataset in ['gcj', 'gcjpy', 'java40']:
     rf_results = collect_rf(dataset)
     nn_results = collect_nn(dataset)
     draw_nn(nn_results, dataset)
