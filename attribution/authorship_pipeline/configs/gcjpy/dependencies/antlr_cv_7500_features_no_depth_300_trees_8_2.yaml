@@ -1,4 +1,4 @@
-source_folder: ../../processed/gcjpy_antlr_8_2/py/
+source_folder: ../../processed/gcjpy_antlrAll_8_2/py/
 classifier_type: rf
 mode: snapshot
 features:
