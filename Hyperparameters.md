@@ -17,7 +17,7 @@ Dependency of models' accuracy on their hyperparameters.
 ![dependency on max features](figures/gcj/rf-features.png)
 
 #### Number of features after MI selection, GCJ, Python, 70 developers
-![dependency on max features](figures/gcj/rf-features.png)
+![dependency on max features](figures/gcjpy/rf-features.png)
 
 #### Number of features after MI selection, Java-40, 40 developers
 ![dependency on max features](figures/java40/rf-features.png)
@@ -26,7 +26,7 @@ Dependency of models' accuracy on their hyperparameters.
 ![dependency on number of trees](figures/gcj/rf-trees.png)
 
 #### Number of trees, GCJ, Python, 70 developers
-![dependency on number of trees](figures/gcj/rf-trees.png)
+![dependency on number of trees](figures/gcjpy/rf-trees.png)
 
 #### Number of trees, Java-40, 40 developers
 ![dependency on number of trees](figures/java40/rf-trees.png)
@@ -35,7 +35,7 @@ Dependency of models' accuracy on their hyperparameters.
 ![dependency on path length](figures/gcj/rf-length.png)
 
 #### Path length, GCJ, Python, 70 developers
-![dependency on path length](figures/gcj/rf-length.png)
+![dependency on path length](figures/gcjpy/rf-length.png)
 
 #### Path length, Java-40, 40 developers
 ![dependency on path length](figures/java40/rf-length.png)
@@ -46,7 +46,7 @@ Dependency of models' accuracy on their hyperparameters.
 ![dependency on dimensionality](figures/gcj/nn-dims.png)
 
 #### Dimensionality of the embeddings, GCJ, Python, 70 developers
-![dependency on dimensionality](figures/gcj/nn-dims.png)
+![dependency on dimensionality](figures/gcjpy/nn-dims.png)
 
 #### Dimensionality of the embeddings, Java-40, 40 developers
 ![dependency on dimensionality](figures/java40/nn-dims.png)
