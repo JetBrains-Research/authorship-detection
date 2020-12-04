@@ -1,4 +1,4 @@
-batch_size: 16
+batch_size: 128
 classifier_type: nn
 epochs: 10
 hidden_dim: 32

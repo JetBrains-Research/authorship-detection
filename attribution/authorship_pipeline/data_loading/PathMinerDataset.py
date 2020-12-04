@@ -22,9 +22,7 @@ class PathMinerDataset(Dataset):
             self._contexts = path_contexts
             self._should_pad = should_pad
             if should_pad:
-                # self._pad_length = max([len(arr) for arr in self.contexts.starts])
-                self._pad_length = 1000
-                # print(self._pad_length)
+                self._pad_length = 500
         else:
             self._tokens, self._paths = path_contexts
 
@@ -61,10 +59,11 @@ class PathMinerDataset(Dataset):
                         'labels': self._labels[index]
                     }
                 else:
+                    inds = np.random.permutation(cur_len)[:self._pad_length]
                     return {
-                        'starts': starts[:self._pad_length],
-                        'paths': paths[:self._pad_length],
-                        'ends': ends[:self._pad_length],
+                        'starts': starts[inds],
+                        'paths': paths[inds],
+                        'ends': ends[inds],
                         'labels': self._labels[index]
                     }
             else:

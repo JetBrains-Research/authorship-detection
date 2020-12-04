@@ -1,0 +1,28 @@
+mean: 0.9400000000000001
+scores:
+- !!python/object/new:classifiers.BaseClassifier.ClassificationResult
+  - 0.9428571428571428
+  - 0.9548753100589894
+  - 0.977753705882875
+  - 0
+- !!python/object/new:classifiers.BaseClassifier.ClassificationResult
+  - 0.9857142857142858
+  - 0.9677219223159834
+  - 0.9850682095173913
+  - 1
+- !!python/object/new:classifiers.BaseClassifier.ClassificationResult
+  - 0.8928571428571429
+  - 0.8933826223865475
+  - 0.913345810100921
+  - 2
+- !!python/object/new:classifiers.BaseClassifier.ClassificationResult
+  - 0.95
+  - 0.9360388425930608
+  - 0.9589632542577109
+  - 3
+- !!python/object/new:classifiers.BaseClassifier.ClassificationResult
+  - 0.9285714285714286
+  - 0.9259205243294792
+  - 0.9410247356421558
+  - 4
+std: 0.030169588688489818
