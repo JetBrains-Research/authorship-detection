@@ -3,10 +3,11 @@ from torch import nn
 from torch.nn import functional as F
 
 
-# Implementation of code2vec's vectorization part in PyTorch.
-# Since it is a PyTorch Module, it can be reused as a part of another pipeline.
 class CodeVectorizer(nn.Module):
-
+    """
+    Implementation of code2vec's vectorization part in PyTorch.
+    Since it is a PyTorch Module, it can be reused as a part of another pipeline.
+    """
     def __init__(self, n_tokens, n_paths, dim):
         super(CodeVectorizer, self).__init__()
         self.tokens_embed = nn.Embedding(n_tokens, dim)

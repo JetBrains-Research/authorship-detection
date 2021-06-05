@@ -21,6 +21,13 @@ ClassificationResult = namedtuple(
 def compute_classification_result(
         true_labels: List, predicted_labels: List, fold_ind: Union[int, Tuple[int, int]]
 ) -> ClassificationResult:
+    """
+    Compute metric values (accuracy, precision, recall), given the predictions.
+    :param true_labels: true authors
+    :param predicted_labels: model's predictions
+    :param fold_ind: index that is used to refer to the fold in cross-validation
+    :return: an instance of ClassificationResult that contains the computed metric values
+    """
     true_labels = np.array(true_labels, dtype=np.int)
     predicted_labels = np.array(predicted_labels, dtype=np.int)
     labels, counts = np.unique(true_labels, return_counts=True)
@@ -53,7 +60,9 @@ def compute_classification_result(
 
 
 class BaseClassifier:
-
+    """
+    Base class for all classifiers that handles correct setup of data loading, data splitting, and cross-validation.
+    """
     def __init__(self, config: Config, project_folder: Union[ProcessedFolder, ProcessedSnapshotFolder],
                  change_entities: pd.Series, change_to_time_bucket: Dict, min_max_count: Tuple[int, int],
                  author_occurrences: Counter, context_splits: List[ContextSplit]):
@@ -75,6 +84,9 @@ class BaseClassifier:
         self.__seed = self.config.seed()
 
     def __split_into_classes(self) -> Tuple[np.ndarray, int]:
+        """
+        Computes indices that belong to each class (author).
+        """
         print("Splitting into classes")
         index = self._loader.labels()
         n_classes = self._loader.n_classes()
@@ -87,15 +99,27 @@ class BaseClassifier:
         return indices_per_class, n_classes
 
     def update_chosen_classes(self):
+        """
+        For evaluation on the data from a subset of authors, this method re-samples the picked authors.
+        If all the authors should be used, it keeps selecting the complete set of authors.
+        """
         chosen_classes = np.random.choice(self._n_classes, self.config.n_classes(), replace=False) \
             if self.config.n_classes() is not None \
             else np.arange(self._n_classes)
         self.__chosen_classes = chosen_classes
 
-    # Create training and validation dataset.
     def _split_train_test(self, loader: PathMinerLoader, fold_ind: Union[int, Tuple[int, int]], pad: bool = False) \
             -> Tuple[PathMinerDataset, PathMinerDataset]:
-
+        """
+        Creates train and test datasets. The type of the experiment (regular, context, time) is controlled by the config
+        passed to the Classifier object at the initialization step. Fold index is used to tell which part of data to
+        use for testing (selected fold in cross-validation, test slice for 'time', or test subset of code snippets for
+        'context').
+        :param loader: data loader
+        :param fold_ind: part of data used for testing (number in case of cross-validation or 'context', two numbers for 'time')
+        :param pad: whether to pad data (used for preparing tensors for the Neural Network model)
+        :return: a tuple of training and testing datasets
+        """
         chosen_classes = self.__chosen_classes
         if self.config.mode() == 'time':
             train_fold, test_fold = fold_ind
@@ -133,10 +157,16 @@ class BaseClassifier:
         return self._create_datasets(loader, train_indices, test_indices, pad)
 
     def _create_datasets(self, loader, train_indices, test_indices, pad) -> Tuple[PathMinerDataset, PathMinerDataset]:
+        """
+        :return: datasets for training and testing
+        """
         return PathMinerDataset.from_loader(loader, train_indices, pad), \
                PathMinerDataset.from_loader(loader, test_indices, pad)
 
     def cross_validation_folds(self) -> List[int]:
+        """
+        :return: a list of fold indices depending on the test size passed in config
+        """
         test_size = self.config.test_size()
         if isinstance(test_size, float):
             return list(range(int(np.ceil(1. / test_size))))

@@ -13,7 +13,9 @@ from util import ProcessedFolder
 
 
 class CaliskanClassifier():
-
+    """
+    A re-implementation supporting Java of the authorship attribution model described by Caliskan et al.
+    """
     def __init__(self, config: Config, project_folder: ProcessedFolder, change_entities: pd.Series,
                  change_to_time_bucket: Dict, min_max_count: Tuple[int, int], context_splits: List[ContextSplit]):
 
@@ -29,7 +31,9 @@ class CaliskanClassifier():
 
     def __split_data(self, fold_ind: Union[int, Tuple[int, int]]) -> \
             Tuple[csc_matrix, np.ndarray, csc_matrix, np.ndarray]:
-
+        """
+        Prepares training and testing data in a form of sparse feature matrices
+        """
         if self.config.mode() == 'time':
             train_fold, test_fold = fold_ind
             train_indices = [
@@ -63,6 +67,10 @@ class CaliskanClassifier():
 
     def run(self, fold_indices: Union[List[int], List[Tuple[int, int]]]) \
             -> Tuple[float, float, List[ClassificationResult]]:
+        """
+        Runs experiments for multiple folds and reports averaged metrics as well as metrics for each experiment.
+        :param fold_indices: fold indices used for testing
+        """
         print("Begin cross validation")
         scores = []
         for fold_ind in fold_indices:
@@ -76,6 +84,9 @@ class CaliskanClassifier():
 
     def __run_classifier(self, X_train, X_test, y_train, y_test, fold_ind, single=True) -> \
             Union[ClassificationResult, List[ClassificationResult]]:
+        """
+        Run classification for a single fold given sparse feature matrices.
+        """
         params = self.config.params()
         if isinstance(fold_ind, int) or fold_ind[0] not in self.models:
             model = RandomForestClassifier(**params)

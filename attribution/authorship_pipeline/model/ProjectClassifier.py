@@ -4,7 +4,6 @@ from model.CodeVectorizer import CodeVectorizer
 
 
 class ProjectClassifier(nn.Module):
-
     def __init__(self, n_tokens, n_paths, dim, n_classes):
         super(ProjectClassifier, self).__init__()
         self.vectorization = CodeVectorizer(n_tokens, n_paths, dim)

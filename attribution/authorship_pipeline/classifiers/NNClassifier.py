@@ -15,6 +15,9 @@ from util import ProcessedFolder
 
 
 class NNClassifier(BaseClassifier):
+    """
+    An implementation of PbNN classifier. For the code of the neural network part please see authorship_pipeline.model
+    """
     def __init__(self, config: Config, project_folder: ProcessedFolder, change_entities: pd.Series,
                  change_to_time_bucket: Dict, min_max_count: Tuple[int, int], author_occurrences: Counter,
                  context_splits: List[ContextSplit]):
@@ -22,6 +25,9 @@ class NNClassifier(BaseClassifier):
                                            min_max_count, author_occurrences, context_splits)
 
     def __sample_loaders(self, fold_ind: Union[int, Tuple[int, int]] = 0) -> Tuple[DataLoader, DataLoader]:
+        """
+        Define training and testing data loaders for a given testing fold.
+        """
         train_dataset, test_dataset = self._split_train_test(self._loader, fold_ind, pad=True)
         train_loader = DataLoader(train_dataset, self.config.batch_size(), shuffle=True)
         test_loader = DataLoader(test_dataset, self.config.batch_size())
@@ -29,6 +35,9 @@ class NNClassifier(BaseClassifier):
 
     def __train(self, train_loader, test_loaders, model, optimizer, loss_function, n_epochs, log_batches, batch_size,
                 fold_ind, should_train):
+        """
+        Train the model and report metrics for each of the testing datasets defined by test_loaders.
+        """
         print("Start training")
         accuracies = [ClassificationResult(0, 0, 0, 0) for _ in range(len(test_loaders))]
         if not should_train:
@@ -126,6 +135,9 @@ class NNClassifier(BaseClassifier):
 
     def run(self, fold_indices: Union[List[int], List[Tuple[int, int]]]) \
             -> Tuple[float, float, List[ClassificationResult]]:
+        """
+        Run experiments for all the testing datasets defined by fold_indices.
+        """
         print("Begin cross validation")
         scores = []
         for fold_ind in fold_indices:

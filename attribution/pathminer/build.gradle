@@ -40,7 +40,7 @@ dependencies {
   compile group: 'com.github.gumtreediff', name: 'gen.jdt', version: '2.1.0'
   implementation 'com.google.code.gson:gson:2.8.5'
 //  implementation 'io.github.vovak.astminer:astminer:0.6'
-  implementation files('/home/egor/work/astminer/build/shadow/lib-0.6.jar')
+  implementation files('build/astminer-lib/lib-0.6.jar')
 
   implementation "com.github.ajalt:clikt:2.1.0"
   testCompile "junit:junit:4.11"

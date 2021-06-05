@@ -14,6 +14,9 @@ from util import ProcessedFolder
 
 
 class RFClassifier(BaseClassifier):
+    """
+    An implementation of PbRF classifier.
+    """
     def __init__(self, config: Config, project_folder: ProcessedFolder, change_entities: pd.Series,
                  change_to_time_bucket: Dict, min_max_count: Tuple[int, int], author_occurrences: Counter,
                  context_splits: List[ContextSplit]):
@@ -23,6 +26,9 @@ class RFClassifier(BaseClassifier):
         self.mis = {}
 
     def __build_sparse_matrix(self, dataset: PathMinerDataset, features: List[str]) -> csc_matrix:
+        """
+        Build a sparse matrix containing normalized frequencies of tokens/paths for each author.
+        """
         print("Building sparse matrix")
         feature_counts = [self.__feature_count(f) for f in features]
         data = []
@@ -59,6 +65,9 @@ class RFClassifier(BaseClassifier):
         return 0
 
     def __create_samples(self, fold_ind: Union[int, Tuple[int, int]] = 0):
+        """
+        Prepares training and testing data in a form of sparse feature matrices
+        """
         train_dataset, test_dataset = self._split_train_test(self._loader, fold_ind)
 
         X_train = self.__build_sparse_matrix(train_dataset, self.config.features())
@@ -89,6 +98,10 @@ class RFClassifier(BaseClassifier):
 
     def run(self, fold_indices: Union[List[int], List[Tuple[int, int]]]) \
             -> Tuple[float, float, List[ClassificationResult]]:
+        """
+        Runs experiments for multiple folds and reports averaged metrics as well as metrics for each experiment.
+        :param fold_indices: fold indices used for testing
+        """
         print("Begin cross validation")
         scores = []
         for fold_ind in fold_indices:
@@ -102,7 +115,9 @@ class RFClassifier(BaseClassifier):
 
     def __run_classifier(self, X_train, X_test, y_train, y_test, fold_ind, single=True) -> \
             Union[ClassificationResult, List[ClassificationResult]]:
-
+        """
+        Run classification for a single fold given sparse feature matrices.
+        """
         params = self.config.params()
         if isinstance(fold_ind, int) or fold_ind[0] not in self.models:
             model = RandomForestClassifier(**params)

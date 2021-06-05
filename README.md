@@ -13,18 +13,21 @@ source code not available
 * Google Code Jam submissions, C/C++/Python
 * [40 authors](https://github.com/xinyu1118/authorship_attribution), Java
 * Projects mined from GitHub with a new data collection approach
+
+The Java, C++, and Python datasets are also available [here](https://drive.google.com/drive/u/1/folders/1UGFFC5KYMRA-9F_VTsG_VcsZjAv7SG4i).
+
 ## Project structure
 Data extraction pipeline consists of two modules: [Gitminer](attribution/gitminer) written in Python and [Pathminer](attribution/pathminer) written in Kotlin. 
 * Gitminer processes history of Git repository to extract all the blobs containing Java code.
 * Pathminer uses [GumTree](https://github.com/GumTreeDiff/gumtree) to parse Java code and track method changes through repo's history.
 * To extract data from GitHub projects, store names and links of GitHub projects in [projects](attribution/projects.txt) and
-[git_projects](attribution/git_projects.txt). Then, go to [runner directory](attribution/runner) and run `run.py`
+[git_projects](attribution/git_projects.txt), respectively. Then, go to [runner directory](attribution/runner) and run `run.py`
 
 Models and all the code for training/evaluation located in [authorship_pipeline](attribution/authorship_pipeline) directory.
 To run experiments:
 * Create configuration file manually (for examples see [configs](attribution/authorship_pipeline/configs) directory) or 
 edit and run `generate_configs.py`.
-* Run `python run_classification.py configs/your/config.yaml`
+* Run `python run_classification.py configs/path/to/your/config.yaml`
 * To draw graphs for evaluation on your project run `draw_graphs.py --project your_project_name`
 
 To run cross-validation on new data:
@@ -35,7 +38,7 @@ java -jar attribution/pathminer/extract-path-contexts.jar snapshot \
     --project datasets/datasetName/ \
     --output processed/datasetName/ \
     --java-parser antlr \
-    --maxContexts 1000 --maxH 8 --maxW 3
+    --maxContexts 2000 --maxH 8 --maxW 3
 ```
 * Depending on the language, extracted data will be in the `processed/datasetName/{c,cpp,java,py}` folder.
 * To run cross-validation, create a configuration file (e.g., 
